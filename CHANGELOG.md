@@ -5,6 +5,68 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-04-03
+
+### ✨ Added - Layer-Specific Animations
+
+#### Core Feature
+- 🎨 **Layer Animation System** - Different OLED animations for each keyboard layer
+  - Automatic detection of active layer
+  - Instant animation switching when layers change
+  - Support for 1-8 layers (Base, Lower, Raise, Adjust, etc.)
+  - Optional smooth transitions between layer changes
+  - Configurable transition duration (default: 200ms)
+  - Per-layer text indicators (optional)
+
+#### New Command
+- `corne-cli oled layers` - Interactive wizard for layer animation generation
+  - Configure multiple layers with different animations
+  - Auto-detection of OLED size from connected keyboard
+  - Independent frame delays per layer
+  - Optional layer name indicators
+  - Transition effects configuration
+  - Generates complete QMK integration code
+
+#### Generated Files
+- Animation header with layer detection system
+- Complete layer-specific frame arrays
+- Automatic layer switching logic
+- Rules.mk configuration
+- Layer indicator rendering (optional)
+
+#### Technical Implementation
+- Real-time layer state detection using `get_highest_layer()`
+- Efficient lookup table for layer animations
+- Per-layer frame management and timing
+- Zero performance impact on layer switching
+- Optimized PROGMEM storage for all layers
+
+### 📝 Documentation
+- Added [Layer Animations Guide](docs/LAYER_ANIMATIONS.md) - Comprehensive documentation
+  - Quick start tutorial
+  - Layer-specific design tips and ideas
+  - Performance optimization guidelines
+  - Memory usage calculations
+  - Troubleshooting section
+  - Animation resource recommendations
+  - Example configurations (minimal, full, gaming)
+- Updated README with layer animations showcase
+
+### 🔧 Technical Improvements
+- New `LayerAnimationGenerator` class in `src/core/keymap/layers.ts`
+- Validation system for layer configurations
+- Duplicate layer ID detection
+- Support for custom layer IDs and names
+- Configurable layer indicators with positioning
+- Export of layer animation types and constants
+
+### 🎨 Features
+- **Transition Effects**: Smooth fade between layer changes
+- **Layer Indicators**: Optional text overlay showing current layer
+- **Flexible Configuration**: 1-8 layers, custom names and IDs
+- **Memory Efficient**: Optimized frame storage and management
+- **Instant Feedback**: Real-time layer detection and switching
+
 ## [0.3.0] - 2026-04-03
 
 ### ✨ Added - WPM-Based Animations

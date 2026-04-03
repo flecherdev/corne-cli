@@ -112,6 +112,41 @@ corne-cli oled wpm
 
 📖 [Complete WPM Animation Guide](docs/WPM_ANIMATIONS.md)
 
+### 🎨 Layer-Specific Animations (New!)
+
+Display different animations for each keyboard layer!
+
+```bash
+# Generate layer-specific animations with interactive wizard
+corne-cli oled layers
+
+# Configure up to 8 layers:
+# - Base: idle/typing animation
+# - Lower: symbols/special characters theme
+# - Raise: numbers/functions theme
+# - Adjust: settings/configuration theme
+
+# Provide one animation (GIF) per layer
+# Each layer can have different frame delays
+# Optional text indicators ("SYM", "NUM", etc.)
+```
+
+**What it does:**
+- Automatically detects active layer in real-time
+- Instantly switches animation when you change layers
+- Optional smooth transitions between layers
+- Configurable layer name indicators
+- Independent frame timing per layer
+- Memory-efficient implementation
+
+**Example use cases:**
+- Show calm animation on base layer, energetic on function layers
+- Display visual hints for what each layer does
+- Add layer name indicators for quick reference
+- Create themed animations per layer purpose
+
+📖 [Complete Layer Animation Guide](docs/LAYER_ANIMATIONS.md)
+
 ### Generated Code Example
 
 ```c

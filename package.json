@@ -1,12 +1,12 @@
 {
   "name": "corne-cli",
-  "version": "0.3.0",
-  "description": "CLI tool for customizing Corne keyboards with QMK firmware and WPM-based animations",
+  "version": "0.4.0",
+  "description": "CLI tool for customizing Corne keyboards with QMK firmware, WPM-based animations, and layer-specific OLED displays",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "corne-cli": "./bin/corne-cli.js",
-    "corne": "./bin/corne-cli.js"
+    "corne-cli": "bin/corne-cli.js",
+    "corne": "bin/corne-cli.js"
   },
   "scripts": {
     "build": "cross-env NODE_OPTIONS='--no-inspect' tsc",
@@ -36,7 +36,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flecherdev/corne-cli.git"
+    "url": "git+https://github.com/flecherdev/corne-cli.git"
   },
   "bugs": {
     "url": "https://github.com/flecherdev/corne-cli/issues"
@@ -78,7 +78,10 @@
     "dist/",
     "bin/",
     "templates/",
+    "docs/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md",
+    "USER_GUIDE.md"
   ]
 }

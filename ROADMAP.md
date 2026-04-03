@@ -52,6 +52,22 @@
   - Optimized render loop without blocking
   - No input lag or freeze
 
+- ✅ **WPM-Based Animations** - Speed-reactive displays (v0.3.0)
+  - Idle animations (< 20 WPM)
+  - Typing animations (20-60 WPM)
+  - Fast typing animations (> 60 WPM)
+  - WPM counter integration
+  - Configurable thresholds
+  - Automatic frame switching
+
+- ✅ **Layer-Specific Animations** - Context-aware displays (v0.4.0)
+  - Different animation per layer (1-8 layers)
+  - Instant layer detection and switching
+  - Smooth transitions between layers
+  - Custom layer indicators (optional text overlay)
+  - Per-layer frame timing control
+  - Memory-efficient implementation
+
 ### Platform-Specific Support
 - ✅ **Windows Support** - Full MSYS2/QMK MSYS integration
   - QMK MSYS installation guide
@@ -94,20 +110,6 @@
 ---
 
 ## 🚧 In Progress (v1.1)
-
-### Enhanced OLED Features
-- ✅ **WPM-Based Animations** - Speed-reactive displays (COMPLETED v0.3.0)
-  - Idle animations (< 20 WPM)
-  - Typing animations (20-60 WPM)
-  - Fast typing animations (> 60 WPM)
-  - WPM counter integration
-  - Configurable thresholds
-  - Automatic frame switching
-
-- 🔄 **Layer-Specific Animations** - Context-aware displays
-  - Different animation per layer
-  - Smooth transitions
-  - Custom layer indicators
 
 ### CLI Improvements
 - 🔄 **Interactive Configuration Wizard** - Guided setup

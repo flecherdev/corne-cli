@@ -5,7 +5,7 @@ import ora from 'ora';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
-import { OLEDImageConverter, WPMAnimationGenerator, WPMConfig, DEFAULT_WPM_CONFIG, WPMAnimationSet } from '../core/keymap';
+import { OLEDImageConverter, WPMAnimationGenerator, WPMConfig, DEFAULT_WPM_CONFIG, WPMAnimationSet, LayerAnimationGenerator, LayerAnimationConfig, LayerAnimationSet, LayerDefinition, DEFAULT_LAYER_NAMES } from '../core/keymap';
 import { BootloaderDetector } from '../core/bootloader';
 import boxen from 'boxen';
 
@@ -690,6 +690,251 @@ export async function generateWPMAnimationCommand(options: any): Promise<void> {
 }
 
 /**
+ * Generate layer-specific animations
+ */
+export async function generateLayerAnimationCommand(options: any): Promise<void> {
+  try {
+    console.log('\n' + boxen(
+      chalk.cyan.bold('🎨 Layer-Specific Animation Generator\n\n') +
+      chalk.white('Create different OLED animations for each keyboard layer!'),
+      {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'cyan',
+      }
+    ));
+
+    // Detect OLED size
+    let width = options.width || 128;
+    let height = options.height || 32;
+
+    if (!options.width || !options.height) {
+      const spinner = ora('Detecting OLED size...').start();
+      const detector = new BootloaderDetector();
+      const model = await detector.detectKeyboardModel();
+      
+      if (model && model.oledWidth && model.oledHeight) {
+        width = model.oledWidth;
+        height = model.oledHeight;
+        spinner.succeed(chalk.cyan(`Detected OLED size: ${width}x${height}`));
+      } else {
+        spinner.info(chalk.yellow(`Using default size: ${width}x${height}`));
+      }
+    }
+
+    // Ask how many layers to configure
+    const layerCountAnswer = await inquirer.prompt([
+      {
+        type: 'number',
+        name: 'layerCount',
+        message: 'How many layers to configure?',
+        default: 4,
+        validate: (input: number) => {
+          if (input < 1 || input > 8) return 'Please enter between 1 and 8 layers';
+          return true;
+        },
+      },
+      {
+        type: 'confirm',
+        name: 'enableTransitions',
+        message: 'Enable smooth transitions between layers?',
+        default: true,
+      },
+      {
+        type: 'number',
+        name: 'transitionDuration',
+        message: 'Transition duration (ms):',
+        default: 200,
+        when: (answers: any) => answers.enableTransitions,
+      },
+    ]);
+
+    const layers: LayerDefinition[] = [];
+
+    // Configure each layer
+    for (let i = 0; i < layerCountAnswer.layerCount; i++) {
+      console.log(chalk.cyan(`\n📝 Configuring Layer ${i}:`));
+
+      const layerConfig = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'name',
+          message: `Layer ${i} name:`,
+          default: DEFAULT_LAYER_NAMES[i] || `Layer${i}`,
+          validate: (input: string) => {
+            if (!input || input.trim() === '') return 'Layer name is required';
+            return true;
+          },
+        },
+        {
+          type: 'input',
+          name: 'animation',
+          message: `Path to animation (GIF/image) for ${DEFAULT_LAYER_NAMES[i] || `Layer ${i}`}:`,
+          validate: (input: string) => {
+            if (!input) return 'Animation file is required';
+            return true;
+          },
+        },
+        {
+          type: 'number',
+          name: 'frameDelay',
+          message: 'Frame delay (ms):',
+          default: 100,
+          validate: (input: number) => {
+            if (input < 10) return 'Frame delay must be at least 10ms';
+            return true;
+          },
+        },
+        {
+          type: 'confirm',
+          name: 'addIndicator',
+          message: 'Add text indicator for this layer?',
+          default: i > 0, // Add indicators for non-base layers
+        },
+        {
+          type: 'input',
+          name: 'indicatorText',
+          message: 'Indicator text (3-4 chars):',
+          default: (answers: any) => answers.name.substring(0, 4).toUpperCase(),
+          when: (answers: any) => answers.addIndicator,
+          validate: (input: string) => {
+            if (input.length > 6) return 'Too long (max 6 characters)';
+            return true;
+          },
+        },
+      ]);
+
+      // Process animation
+      const spinner = ora(`Processing ${layerConfig.name} animation...`).start();
+      
+      try {
+        const frameData = await extractGifFrames(layerConfig.animation, width, height);
+        const frames = frameData.map(f => f.buffer);
+        
+        layers.push({
+          id: i,
+          name: layerConfig.name,
+          animation: {
+            frames,
+            frameDelay: layerConfig.frameDelay,
+          },
+          indicator: layerConfig.addIndicator ? {
+            text: layerConfig.indicatorText,
+            position: 'top-right',
+          } : undefined,
+        });
+
+        spinner.succeed(chalk.green(`${layerConfig.name}: ${frames.length} frames loaded`));
+      } catch (error: any) {
+        spinner.fail(chalk.red(`Error processing ${layerConfig.name} animation`));
+        console.error(chalk.red(error.message));
+        return;
+      }
+    }
+
+    // Create animation set
+    const animationSet: LayerAnimationSet = {
+      layers,
+      config: {
+        enabled: true,
+        enableTransitions: layerCountAnswer.enableTransitions,
+        transitionDuration: layerCountAnswer.transitionDuration || 200,
+        layers,
+      },
+    };
+
+    // Validate configuration
+    const generator = new LayerAnimationGenerator(animationSet.config, width, height);
+    const validation = generator.validateConfig(animationSet);
+
+    if (!validation.valid) {
+      console.error(chalk.red('\n❌ Configuration validation failed:'));
+      validation.errors.forEach(err => console.error(chalk.red(`  • ${err}`)));
+      return;
+    }
+
+    // Generate QMK code
+    const spinner = ora('Generating QMK code...').start();
+    const qmkCode = generator.generateQMKCode(animationSet);
+
+    // Get output filename
+    const outputAnswer = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'output',
+        message: 'Output file name:',
+        default: 'layer_animation.h',
+      },
+    ]);
+
+    const outputPath = path.join(process.cwd(), outputAnswer.output);
+    await fs.writeFile(outputPath, qmkCode, 'utf-8');
+
+    // Generate rules.mk addition
+    const rulesContent = `# Layer-specific OLED animations
+OLED_ENABLE = yes
+OLED_DRIVER = ssd1306
+`;
+    const rulesPath = outputPath.replace('.h', '_rules.mk');
+    await fs.writeFile(rulesPath, rulesContent, 'utf-8');
+
+    spinner.succeed(chalk.green('Layer animations generated successfully!'));
+
+    // Show summary
+    const layerSummary = layers.map(l => 
+      `    ${chalk.cyan(l.name.padEnd(10))} (${chalk.yellow(l.animation.frames.length + ' frames')} @ ${l.animation.frameDelay}ms)`
+    ).join('\n');
+
+    console.log('\n' + boxen(
+      chalk.cyan.bold('📦 Generated Files:\n\n') +
+      chalk.white(`Animation Code: ${chalk.green(outputAnswer.output)}\n`) +
+      chalk.white(`Rules Config:   ${chalk.green(path.basename(rulesPath))}\n\n`) +
+      chalk.cyan.bold('Configured Layers:\n\n') +
+      layerSummary + '\n\n' +
+      chalk.cyan.bold('Settings:\n\n') +
+      chalk.white(`Transitions: ${animationSet.config.enableTransitions ? chalk.green('Enabled') : chalk.gray('Disabled')}\n`) +
+      (animationSet.config.enableTransitions ? 
+        chalk.white(`Duration:    ${chalk.yellow(animationSet.config.transitionDuration + 'ms')}\n`) : ''),
+      {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'green',
+      }
+    ));
+
+    // Usage instructions
+    console.log('\n' + boxen(
+      chalk.cyan.bold('🚀 Usage Instructions:\n\n') +
+      chalk.white('1. Add to your QMK keymap directory:\n') +
+      chalk.gray(`   cp ${outputAnswer.output} ~/qmk_firmware/keyboards/YOUR_KB/keymaps/YOUR_KM/\n\n`) +
+      chalk.white('2. Include in keymap.c:\n') +
+      chalk.gray(`   #include "${outputAnswer.output}"\n\n`) +
+      chalk.white('3. Add to oled_task_user():\n') +
+      chalk.gray('   bool oled_task_user(void) {\n') +
+      chalk.gray('       render_layer_animation();\n') +
+      chalk.gray('       return false;\n') +
+      chalk.gray('   }\n\n') +
+      chalk.white('4. Compile and flash:\n') +
+      chalk.gray('   qmk compile && qmk flash\n\n') +
+      chalk.cyan('💡 Tip: ') +
+      chalk.gray('The animation automatically changes when you switch layers!'),
+      {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'cyan',
+      }
+    ));
+
+  } catch (error: any) {
+    console.error(chalk.red('Error generating layer animations:'), error.message);
+    process.exit(1);
+  }
+}
+
+/**
  * Register OLED commands
  */
 export function registerOLEDCommands(program: Command): void {
@@ -737,4 +982,11 @@ export function registerOLEDCommands(program: Command): void {
     .option('--typing-delay <ms>', 'Frame delay for typing animation (ms)', parseInt)
     .option('--fast-delay <ms>', 'Frame delay for fast typing animation (ms)', parseInt)
     .action(generateWPMAnimationCommand);
+
+  oled
+    .command('layers')
+    .description('Generate layer-specific animations')
+    .option('-w, --width <pixels>', 'OLED width in pixels', parseInt)
+    .option('-t, --height <pixels>', 'OLED height in pixels', parseInt)
+    .action(generateLayerAnimationCommand);
 }
