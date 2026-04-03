@@ -2,16 +2,23 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { deviceInfoCommand, waitForBootloaderCommand } from './commands/device';
 import { registerKeymapCommands } from './commands/keymap';
 import { registerOLEDCommands } from './commands/oled';
+
+// Read version from package.json
+const packageJson = JSON.parse(
+  readFileSync(join(__dirname, '..', 'package.json'), 'utf-8')
+);
 
 const program = new Command();
 
 program
   .name('corne-cli')
   .description('CLI tool for customizing Corne keyboards with QMK firmware')
-  .version('0.1.0');
+  .version(packageJson.version);
 
 // Flash command
 program
