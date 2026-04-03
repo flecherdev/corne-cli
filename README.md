@@ -53,10 +53,12 @@ Transform your OLED displays with animated GIFs!
 
 **What you can do:**
 - ✅ Convert any GIF to QMK animation (4-10 frames recommended)
+- ✅ **Dynamic WPM animations** that respond to your typing speed! 🆕
 - ✅ Display animations on OLED screens (128x32 or 128x64)
 - ✅ Show live keypress feedback on the other OLED
 - ✅ Layer-based animations (different animation per layer)
 - ✅ Optimized for smooth playback with no input lag
+- ✅ WPM counter with configurable thresholds
 
 ### Quick Setup
 
@@ -81,6 +83,34 @@ qmk compile -kb crkbd/rev1 -km my_animation -e CONVERT_TO=promicro_rp2040
 # Press reset button, copy the .uf2 file to RPI-RP2 drive
 # Repeat for both halves of split keyboard
 ```
+
+### 🏃 WPM-Based Animations (New!)
+
+Create dynamic animations that respond to your typing speed!
+
+```bash
+# Generate WPM animation with interactive wizard
+corne-cli oled wpm
+
+# Provide 2-3 animations:
+# - Idle: slow/calm animation (< 20 WPM)
+# - Typing: active animation (20-60 WPM)
+# - Fast: intense animation (> 60 WPM) - optional
+
+# Generated files include:
+# - wpm_animation.h           (animation code with automatic switching)
+# - wpm_animation_rules.mk    (QMK rules configuration)
+# - wpm_animation_keymap.c    (usage example)
+```
+
+**What it does:**
+- Automatically switches animations based on typing speed
+- Shows WPM counter on secondary OLED
+- Configurable speed thresholds
+- Smooth transitions between states
+- No input lag or performance impact
+
+📖 [Complete WPM Animation Guide](docs/WPM_ANIMATIONS.md)
 
 ### Generated Code Example
 

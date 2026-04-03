@@ -5,7 +5,7 @@ import ora from 'ora';
 import fs from 'fs/promises';
 import path from 'path';
 import sharp from 'sharp';
-import { OLEDImageConverter } from '../core/keymap';
+import { OLEDImageConverter, WPMAnimationGenerator, WPMConfig, DEFAULT_WPM_CONFIG, WPMAnimationSet } from '../core/keymap';
 import { BootloaderDetector } from '../core/bootloader';
 import boxen from 'boxen';
 
@@ -476,6 +476,220 @@ async function showOLEDPreview(imageBuffer: Buffer, width: number = 128, height:
 }
 
 /**
+ * Generate WPM-based animations
+ */
+export async function generateWPMAnimationCommand(options: any): Promise<void> {
+  try {
+    console.log('\n' + boxen(
+      chalk.cyan.bold('🏃 WPM-Based Animation Generator\n\n') +
+      chalk.white('Create dynamic OLED animations that respond to your typing speed!'),
+      {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'cyan',
+      }
+    ));
+
+    // Prompt for animation files
+    const answers = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'idleAnimation',
+        message: 'Path to idle animation (GIF/image):',
+        validate: (input: string) => {
+          if (!input) return 'Idle animation is required';
+          return true;
+        },
+      },
+      {
+        type: 'input',
+        name: 'typingAnimation',
+        message: 'Path to typing animation (GIF/image):',
+        validate: (input: string) => {
+          if (!input) return 'Typing animation is required';
+          return true;
+        },
+      },
+      {
+        type: 'confirm',
+        name: 'hasFastAnimation',
+        message: 'Add a separate animation for fast typing?',
+        default: false,
+      },
+      {
+        type: 'input',
+        name: 'fastAnimation',
+        message: 'Path to fast typing animation (GIF/image):',
+        when: (answers: any) => answers.hasFastAnimation,
+      },
+      {
+        type: 'number',
+        name: 'idleThreshold',
+        message: 'WPM threshold for idle state:',
+        default: DEFAULT_WPM_CONFIG.idleThreshold,
+      },
+      {
+        type: 'number',
+        name: 'typingThreshold',
+        message: 'WPM threshold for fast typing:',
+        default: DEFAULT_WPM_CONFIG.typingThreshold,
+        when: (answers: any) => answers.hasFastAnimation,
+      },
+      {
+        type: 'confirm',
+        name: 'showCounter',
+        message: 'Display WPM counter on secondary OLED?',
+        default: true,
+      },
+      {
+        type: 'input',
+        name: 'output',
+        message: 'Output file name:',
+        default: 'wpm_animation.h',
+      },
+    ]);
+
+    const spinner = ora('Processing animations...').start();
+
+    // Detect OLED size
+    let width = options.width || 128;
+    let height = options.height || 32;
+
+    if (!options.width || !options.height) {
+      spinner.text = 'Detecting OLED size...';
+      const detector = new BootloaderDetector();
+      const model = await detector.detectKeyboardModel();
+      
+      if (model && model.oledWidth && model.oledHeight) {
+        width = model.oledWidth;
+        height = model.oledHeight;
+        spinner.info(chalk.cyan(`Detected OLED size: ${width}x${height}`));
+        spinner.start('Processing animations...');
+      }
+    }
+
+    // Process idle animation
+    spinner.text = 'Processing idle animation...';
+    const idleFrameData = await extractGifFrames(answers.idleAnimation, width, height);
+    const idleFrames = idleFrameData.map(f => f.buffer);
+    const idleDelay = options.idleDelay || (idleFrameData[0]?.delay || 400);
+
+    // Process typing animation
+    spinner.text = 'Processing typing animation...';
+    const typingFrameData = await extractGifFrames(answers.typingAnimation, width, height);
+    const typingFrames = typingFrameData.map(f => f.buffer);
+    const typingDelay = options.typingDelay || options.typingDelay || (typingFrameData[0]?.delay || 200);
+
+    // Process fast animation if provided
+    let fastFrames: Buffer[] | undefined;
+    let fastDelay: number | undefined;
+    if (answers.hasFastAnimation && answers.fastAnimation) {
+      spinner.text = 'Processing fast typing animation...';
+      const fastFrameData = await extractGifFrames(answers.fastAnimation, width, height);
+      fastFrames = fastFrameData.map(f => f.buffer);
+      fastDelay = options.fastDelay || (fastFrameData[0]?.delay || 100);
+    }
+
+    // Create animation set
+    const animationSet: WPMAnimationSet = {
+      idle: {
+
+
+        frames: idleFrames,
+        frameDelay: idleDelay,
+      },
+      typing: {
+        frames: typingFrames,
+        frameDelay: typingDelay,
+      },
+    };
+
+    if (fastFrames && fastDelay) {
+      animationSet.fast = {
+        frames: fastFrames,
+        frameDelay: fastDelay,
+      };
+    }
+
+    // Create WPM config
+    const wpmConfig: WPMConfig = {
+      enabled: true,
+      idleThreshold: answers.idleThreshold,
+      typingThreshold: answers.typingThreshold || DEFAULT_WPM_CONFIG.typingThreshold,
+      updateInterval: DEFAULT_WPM_CONFIG.updateInterval,
+      showCounter: answers.showCounter,
+    };
+
+    // Generate QMK code
+    spinner.text = 'Generating QMK code...';
+    const generator = new WPMAnimationGenerator(wpmConfig, width, height);
+    const qmkCode = generator.generateQMKCode(animationSet, 'wpm_animation');
+
+    // Write output file
+    const outputPath = path.join(process.cwd(), answers.output);
+    await fs.writeFile(outputPath, qmkCode, 'utf-8');
+
+    // Generate additional files
+    const rulesPath = outputPath.replace('.h', '_rules.mk');
+    const keymapPath = outputPath.replace('.h', '_keymap_example.c');
+
+    await fs.writeFile(rulesPath, generator.generateRulesMk(), 'utf-8');
+    await fs.writeFile(keymapPath, generator.generateKeymapTemplate(), 'utf-8');
+
+    spinner.succeed(chalk.green('WPM animation generated successfully!'));
+
+    // Show summary
+    console.log('\n' + boxen(
+      chalk.cyan.bold('📦 Generated Files:\n\n') +
+      chalk.white(`Animation Code: ${chalk.green(answers.output)}\n`) +
+      chalk.white(`Rules Config:   ${chalk.green(path.basename(rulesPath))}\n`) +
+      chalk.white(`Keymap Example: ${chalk.green(path.basename(keymapPath))}\n\n`) +
+      chalk.cyan.bold('Animation Details:\n\n') +
+      chalk.white(`Idle frames:   ${chalk.yellow(idleFrames.length)} @ ${idleDelay}ms\n`) +
+      chalk.white(`Typing frames: ${chalk.yellow(typingFrames.length)} @ ${typingDelay}ms\n`) +
+      (fastFrames ? chalk.white(`Fast frames:   ${chalk.yellow(fastFrames.length)} @ ${fastDelay}ms\n`) : '') +
+      chalk.white(`\n`) +
+      chalk.cyan.bold('Settings:\n\n') +
+      chalk.white(`Idle threshold:   < ${chalk.yellow(wpmConfig.idleThreshold)} WPM\n`) +
+      (wpmConfig.typingThreshold ? chalk.white(`Typing threshold: ≥ ${chalk.yellow(wpmConfig.typingThreshold)} WPM\n`) : '') +
+      chalk.white(`WPM counter:      ${wpmConfig.showCounter ? chalk.green('Enabled') : chalk.gray('Disabled')}\n`),
+      {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'green',
+      }
+    ));
+
+    // Usage instructions
+    console.log('\n' + boxen(
+      chalk.cyan.bold('🚀 Usage Instructions:\n\n') +
+      chalk.white('1. Add to your QMK keymap directory:\n') +
+      chalk.gray(`   cp ${answers.output} ~/qmk_firmware/keyboards/YOUR_KB/keymaps/YOUR_KM/\n\n`) +
+      chalk.white('2. Add to rules.mk:\n') +
+      chalk.gray(`   cat ${path.basename(rulesPath)} >> rules.mk\n\n`) +
+      chalk.white('3. Include in keymap.c:\n') +
+      chalk.gray(`   #include "${answers.output}"\n\n`) +
+      chalk.white('4. Add to oled_task_user():\n') +
+      chalk.gray('   render_wpm_animation(is_keyboard_master());\n\n') +
+      chalk.white('5. Compile and flash:\n') +
+      chalk.gray('   qmk compile && qmk flash'),
+      {
+        padding: 1,
+        margin: 1,
+        borderStyle: 'round',
+        borderColor: 'cyan',
+      }
+    ));
+
+  } catch (error: any) {
+    console.error(chalk.red('Error generating WPM animation:'), error.message);
+    process.exit(1);
+  }
+}
+
+/**
  * Register OLED commands
  */
 export function registerOLEDCommands(program: Command): void {
@@ -513,4 +727,14 @@ export function registerOLEDCommands(program: Command): void {
     .command('wizard')
     .description('Interactive OLED configuration wizard')
     .action(oledWizardCommand);
+
+  oled
+    .command('wpm')
+    .description('Generate WPM-based dynamic animations')
+    .option('-w, --width <pixels>', 'OLED width in pixels', parseInt)
+    .option('-t, --height <pixels>', 'OLED height in pixels', parseInt)
+    .option('--idle-delay <ms>', 'Frame delay for idle animation (ms)', parseInt)
+    .option('--typing-delay <ms>', 'Frame delay for typing animation (ms)', parseInt)
+    .option('--fast-delay <ms>', 'Frame delay for fast typing animation (ms)', parseInt)
+    .action(generateWPMAnimationCommand);
 }

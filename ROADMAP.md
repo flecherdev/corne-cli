@@ -96,10 +96,13 @@
 ## 🚧 In Progress (v1.1)
 
 ### Enhanced OLED Features
-- 🔄 **WPM-Based Animations** - Speed-reactive displays
-  - Idle animations
-  - Typing animations
+- ✅ **WPM-Based Animations** - Speed-reactive displays (COMPLETED v0.3.0)
+  - Idle animations (< 20 WPM)
+  - Typing animations (20-60 WPM)
+  - Fast typing animations (> 60 WPM)
   - WPM counter integration
+  - Configurable thresholds
+  - Automatic frame switching
 
 - 🔄 **Layer-Specific Animations** - Context-aware displays
   - Different animation per layer
