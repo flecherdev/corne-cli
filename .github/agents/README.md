@@ -222,6 +222,64 @@ corne-cli/
 - [Corne Keyboard (crkbd)](https://github.com/foostan/crkbd)
 - [QMK crkbd](https://github.com/qmk/qmk_firmware/tree/master/keyboards/crkbd)
 
+## 📊 Optimización de Tokens
+
+### Por Qué Importa
+Usar agentes especializados puede **reducir el consumo de tokens en 40-60%**. Esto significa:
+- ⚡ Respuestas más rápidas
+- 💰 Menor costo de API
+- 🎯 Contexto más relevante
+
+### Ahorro de Tokens por Técnica
+
+| Técnica | Ahorro Estimado |
+|---------|-----------------|
+| Usar agente especializado (@qmk-firmware, @flasher, etc.) | ~30-35% |
+| Sistema de memoria (`/memories/`) | ~40% |
+| Skills personalizados (npm publish, etc.) | ~65-70% |
+| Operaciones paralelas | ~50-65% |
+| Multi-replace edits | ~60% |
+| **Combinado** | **~40-60%** |
+
+### Cómo Optimizar
+
+✅ **Sí hacer**:
+```
+@flasher implementar detección de bootloader Caterina
+```
+- Específico, menciona agente, tarea clara
+
+✅ **Sí hacer**:
+```
+publicar v0.2.3 con fix USB
+```
+- Activa skill de publicación npm (ahorra ~67% tokens)
+
+❌ **Evitar**:
+```
+necesito que me ayudes con algo del bootloader, creo que es para flashear
+pero no estoy seguro qué tipo de bootloader es
+```
+- Vago, sin agente, requiere muchas preguntas de clarificación
+
+### Sistema de Memoria
+
+El proyecto usa memoria persistente para evitar repetir contexto:
+
+- **`/memories/`** - Contexto del proyecto (carga automática)
+- **`/memories/repo/`** - Convenciones del repositorio
+- **`/memories/session/`** - Trabajo en progreso (temporal)
+
+Ver: [Guía Completa de Optimización](../../docs/TOKEN_OPTIMIZATION.md)
+
+### Skills Personalizados
+
+**Publicación npm**: Di "publicar a npm" para activar workflow automático
+- Bump version + update CHANGELOG + build + publish + git push
+- **Ahorro**: ~10,000 tokens por publicación
+
+**Ubicación**: `.github/skills/npm-publish.skill.md`
+
 ## 🎓 Mejores Prácticas
 
 1. **Usa el agente correcto** - Cada agente tiene su especialidad

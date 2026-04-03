@@ -9,7 +9,8 @@
     "corne": "./bin/corne-cli.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "cross-env NODE_OPTIONS='--no-inspect' tsc",
+    "build:watch": "cross-env NODE_OPTIONS='--no-inspect' tsc --watch",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
     "test": "jest",
@@ -17,7 +18,7 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint src tests --ext .ts",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "cross-env NODE_OPTIONS='--no-inspect' npm run build"
   },
   "keywords": [
     "corne",
@@ -61,6 +62,7 @@
     "@types/sharp": "^0.31.1",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
+    "cross-env": "^7.0.3",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "jest": "^29.7.0",
