@@ -2,6 +2,8 @@
   "name": "corne-cli",
   "version": "0.1.0",
   "description": "CLI tool for customizing Corne keyboards with QMK firmware",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
     "corne-cli": "./bin/corne-cli.js",
     "corne": "./bin/corne-cli.js"
@@ -22,10 +24,23 @@
     "keyboard",
     "qmk",
     "firmware",
-    "cli"
+    "cli",
+    "crkbd",
+    "split-keyboard",
+    "oled",
+    "animation",
+    "mechanical-keyboard"
   ],
-  "author": "",
+  "author": "flecherdev",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flecherdev/corne-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flecherdev/corne-cli/issues"
+  },
+  "homepage": "https://github.com/flecherdev/corne-cli#readme",
   "dependencies": {
     "boxen": "^5.1.2",
     "chalk": "^4.1.2",
@@ -56,5 +71,12 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "files": [
+    "dist/",
+    "bin/",
+    "templates/",
+    "README.md",
+    "LICENSE"
+  ]
 }

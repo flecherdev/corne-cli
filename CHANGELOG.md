@@ -204,4 +204,4 @@ See [USER_GUIDE.md](USER_GUIDE.md) for complete migration instructions from olde
 
 *Last Updated: April 2, 2026*
 
-[1.0.0]: https://github.com/yourusername/corne-cli/releases/tag/v1.0.0
+[1.0.0]: https://github.com/flecherdev/corne-cli/releases/tag/v1.0.0

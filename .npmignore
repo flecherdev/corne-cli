@@ -1,0 +1,39 @@
+# Source files
+src/
+tests/
+*.test.ts
+*.spec.ts
+
+# Development files
+.github/
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Config files
+.eslintrc.js
+.prettierrc
+jest.config.js
+tsconfig.json
+
+# Documentation (keep only README)
+docs/
+examples/
+GETTING_STARTED.md
+BOOTLOADER_DETECTION.md
+CHANGELOG.md
+FEATURES.md
+ROADMAP.md
+USER_GUIDE.md
+PROJECT_INITIALIZED.md
+
+# Build artifacts
+coverage/
+*.tsbuildinfo
+node_modules/
+
+# Git
+.git/
+.gitignore
+.gitattributes

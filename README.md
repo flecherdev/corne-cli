@@ -3,6 +3,8 @@
 > CLI tool for customizing Corne split keyboards with QMK firmware and animated OLED displays
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/corne-cli.svg)](https://www.npmjs.com/package/corne-cli)
+[![CI](https://github.com/flecherdev/corne-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/flecherdev/corne-cli/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-18%2B-green.svg)](https://nodejs.org/)
 [![QMK](https://img.shields.io/badge/QMK-0.32+-blueviolet.svg)](https://qmk.fm/)
@@ -142,11 +144,14 @@ qmk setup
 ### Installation
 
 ```bash
-# Install the CLI (coming soon to npm)
+# Install globally from npm
 npm install -g corne-cli
 
+# Or use with npx (no installation required)
+npx corne-cli --help
+
 # Or clone and build from source
-git clone https://github.com/yourusername/corne-cli.git
+git clone https://github.com/flecherdev/corne-cli.git
 cd corne-cli
 npm install
 npm run build
@@ -224,7 +229,7 @@ corne-cli keymap:list
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/corne-cli.git
+git clone https://github.com/flecherdev/corne-cli.git
 cd corne-cli
 
 # Install dependencies
@@ -449,12 +454,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 🎬 [Animation Guide](docs/ANIMATED_GIF_SUPPORT.md)
 - 💾 [Backup Guide](examples/BACKUP_RESTORE.md)
 - 🪟 [Windows Setup](examples/WINDOWS_INSTALL.md)
+- 📦 [Publishing to npm](docs/PUBLISHING.md)
 
 ## 📞 Support
 
-- 📫 Issues: [GitHub Issues](https://github.com/yourusername/corne-cli/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/corne-cli/discussions)
-- 📖 Documentation: [Project Wiki](https://github.com/yourusername/corne-cli/wiki)
+- 📫 Issues: [GitHub Issues](https://github.com/flecherdev/corne-cli/issues)
+- 💬 Discussions: [GitHub Discussions](https://github.com/flecherdev/corne-cli/discussions)
+- 📖 Documentation: [Project Wiki](https://github.com/flecherdev/corne-cli/wiki)
 - 🤖 AI Agents: [Copilot Agents](.github/agents/README.md)
 
 ## 🤝 Contributing
