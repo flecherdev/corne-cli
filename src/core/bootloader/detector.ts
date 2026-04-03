@@ -46,9 +46,20 @@ export class BootloaderDetector {
     try {
       const devices = getHIDDevices();
       const detected: DetectedDevice[] = [];
+      const seen = new Set<string>();
 
       for (const device of devices) {
         if (device.vendorId === undefined || device.productId === undefined) continue;
+
+        // Create unique key for deduplication
+        // Use VID:PID + manufacturer + product (+ serial if available)
+        const uniqueKey = `${device.vendorId}:${device.productId}:${device.manufacturer || ''}:${device.product || ''}:${device.serialNumber || ''}`;
+        
+        // Skip if we've already seen this exact device
+        if (seen.has(uniqueKey)) {
+          continue;
+        }
+        seen.add(uniqueKey);
 
         const bootloader = matchBootloader(device.vendorId, device.productId);
         const isCorne = isCorneKeyboard(device.vendorId, device.productId);
