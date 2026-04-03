@@ -755,24 +755,32 @@ export async function generateLayerAnimationCommand(options: any): Promise<void>
     // Configure each layer
     for (let i = 0; i < layerCountAnswer.layerCount; i++) {
       console.log(chalk.cyan(`\n📝 Configuring Layer ${i}:`));
+      console.log(chalk.gray(`   Layer name: descriptive name like "Base", "Lower", "Raise"`));
+      console.log(chalk.gray(`   Animation file: path to GIF like "./my-animation.gif"\n`));
 
       const layerConfig = await inquirer.prompt([
         {
           type: 'input',
           name: 'name',
-          message: `Layer ${i} name:`,
+          message: `Layer name (e.g., Base, Lower, Symbols):`,
           default: DEFAULT_LAYER_NAMES[i] || `Layer${i}`,
           validate: (input: string) => {
             if (!input || input.trim() === '') return 'Layer name is required';
+            if (input.includes('.gif') || input.includes('.png')) {
+              return 'Layer name should be a descriptive name, not a filename';
+            }
             return true;
           },
         },
         {
           type: 'input',
           name: 'animation',
-          message: `Path to animation (GIF/image) for ${DEFAULT_LAYER_NAMES[i] || `Layer ${i}`}:`,
+          message: `Animation file path (e.g., ./animations/idle.gif):`,
           validate: (input: string) => {
             if (!input) return 'Animation file is required';
+            if (!input.includes('/') && !input.includes('.')) {
+              return 'Please provide a file path (e.g., ./myfile.gif or /full/path/to/file.gif)';
+            }
             return true;
           },
         },

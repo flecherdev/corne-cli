@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-04-03
+
+### 🐛 Fixed - UX Improvements
+
+#### Layer Animation Wizard
+- Improved prompt messages in `corne-cli oled layers` command
+- Added clear examples for layer names vs. animation file paths
+- Added validation to prevent common mistakes:
+  - Layer name cannot be a filename (no .gif/.png extensions)
+  - Animation path must be a valid file path (requires / or .)
+- Added helpful hints above each layer configuration section
+
 ## [0.4.0] - 2026-04-03
 
 ### ✨ Added - Layer-Specific Animations
