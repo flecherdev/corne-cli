@@ -7,6 +7,7 @@ import { join } from 'path';
 import { deviceInfoCommand, waitForBootloaderCommand } from './commands/device';
 import { registerKeymapCommands } from './commands/keymap';
 import { registerOLEDCommands } from './commands/oled';
+import { flashCommand } from './commands/flash';
 
 // Read version from package.json
 const packageJson = JSON.parse(
@@ -22,15 +23,18 @@ program
 
 // Flash command
 program
-  .command('flash')
+  .command('flash [firmware]')
   .description('Flash firmware to connected keyboard')
-  .option('-f, --firmware <path>', 'Path to firmware file')
-  .option('--bootloader <type>', 'Force specific bootloader type')
+  .option('-b, --bootloader <type>', 'Force specific bootloader type')
   .option('--no-verify', 'Skip verification after flashing')
-  .action(async (options) => {
-    console.log(chalk.yellow('⚠️  Flash command not yet implemented'));
-    console.log(chalk.cyan('Options:'), options);
-    console.log(chalk.gray('\nUse @flasher agent to implement this feature'));
+  .option('--wait-timeout <ms>', 'Bootloader wait timeout in milliseconds', '30000')
+  .action(async (firmware, options) => {
+    await flashCommand(firmware, {
+      firmware,
+      bootloader: options.bootloader,
+      verify: options.verify,
+      waitTimeout: parseInt(options.waitTimeout),
+    });
   });
 
 // Compile command

@@ -291,13 +291,28 @@ See [.github/agents/README.md](./.github/agents/README.md) for detailed usage.
 Flash firmware to your connected keyboard:
 
 ```bash
-corne-cli flash [options]
+# Flash firmware
+corne-cli flash firmware.hex
+
+# Flash with specific bootloader
+corne-cli flash firmware.bin --bootloader dfu
+
+# Flash .uf2 file (for RP2040/mass storage)
+corne-cli flash firmware.uf2
 
 Options:
-  -f, --firmware <path>     Path to firmware file (.hex or .bin)
-  --bootloader <type>       Force specific bootloader type
+  -b, --bootloader <type>   Force specific bootloader type
   --no-verify              Skip verification after flashing
+  --wait-timeout <ms>      Bootloader wait timeout (default: 30000)
 ```
+
+**Supported bootloaders:**
+- ARM/RISC-V DFU (via `dfu-util`)
+- Atmel/LUFA/QMK DFU (via `dfu-programmer`)
+- Caterina (Arduino, Pro Micro) (via `avrdude`)
+- HalfKay (Teensy) (via `teensy_loader_cli`)
+- QMK HID (via `hid_bootloader_cli`)
+- Mass Storage/UF2 (RP2040) - Manual copy
 
 ### Keymap
 
@@ -395,12 +410,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Commander.js](https://github.com/tj/commander.js) - CLI framework
 - All the bootloader tool maintainers
 
-## ✅ What's Completed (v1.0)
+## ✅ What's Completed (v0.2.0)
 
 ### Major Features
 - 🎬 **Animated GIF Support** - Full pipeline from GIF to working OLED animation
 - ⌨️ **Real-Time Key Display** - Live keystroke visualization (50+ symbols)
 - 🎮 **RP2040 Support** - Native UF2 bootloader flashing
+- 🔥 **Firmware Flash** - Complete flashing support for 6+ bootloader types
 - 💾 **Backup System** - Automated configuration backups
 - 🔧 **VS Code Integration** - QMK MSYS terminal setup
 - 📚 **Complete Documentation** - 2,000+ lines of guides
