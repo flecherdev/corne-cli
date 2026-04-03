@@ -1,6 +1,6 @@
 {
   "name": "corne-cli",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "CLI tool for customizing Corne keyboards with QMK firmware",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
