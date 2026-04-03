@@ -47,7 +47,7 @@ Transform your OLED displays with animated GIFs!
 
 ### Real Example
 
-![Corne CLI - Kings and Pigs Mascot](examples/king.png)
+![Corne CLI - Kings and Pigs Mascot](examples/king.gif)
 
 *Mascot image from [Kings and Pigs](https://pixelfrog-assets.itch.io/kings-and-pigs) by Pixelfrog Assets*
 

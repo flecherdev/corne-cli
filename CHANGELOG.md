@@ -137,7 +137,7 @@ New Files:
 ├── ROADMAP.md                              - Project roadmap
 ├── CHANGELOG.md                            - This file
 ├── examples/
-│   ├── king.png                           - Example animated image (Kings and Pigs by Pixelfrog Assets)
+│   ├── king.gif                           - Example animated image (Kings and Pigs by Pixelfrog Assets)
 │   ├── king_oled_anim.h                   - Generated animation header
 │   ├── keymap_example.c                   - Complete keymap with animation
 │   ├── config.h                           - OLED configuration

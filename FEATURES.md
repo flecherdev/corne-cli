@@ -12,7 +12,7 @@ A complete CLI tool for customizing Corne keyboards with **animated OLED display
 Convert any **animated GIF** into a QMK-compatible OLED animation that runs smoothly on your keyboard.
 
 ### Demo
-![Corne CLI Mascot](examples/king.png)
+![Corne CLI Mascot](examples/king.gif)
 
 *Mascot from [Kings and Pigs](https://pixelfrog-assets.itch.io/kings-and-pigs) by Pixelfrog Assets*
 

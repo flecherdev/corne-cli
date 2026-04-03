@@ -7,7 +7,7 @@ Esta carpeta contiene todo lo necesario para configurar tu teclado Corne con la 
 ### 🎬 Animación Generada
 | Archivo | Descripción |
 |---------|-------------|
-| [`king.png`](king.png) | Imagen mascota del proyecto (Kings and Pigs by Pixelfrog Assets) |
+| [`king.gif`](king.gif) | Imagen mascota del proyecto (Kings and Pigs by Pixelfrog Assets) |
 | [`king_oled_anim.h`](king_oled_anim.h) | Código QMK generado con la animación |
 
 ### 📝 Archivos de Configuración
@@ -82,7 +82,7 @@ Sigue la guía paso a paso: [`SETUP_GUIDE.md`](SETUP_GUIDE.md)
 
 ## 🎬 ¿Qué hace la animación?
 
-La imagen del rey ([`king.png`](king.png)):
+La imagen del rey ([`king.gif`](king.gif)):
 - ✅ Mascota del proyecto
 - ✅ Pixel art adaptado para pantallas OLED
 - ✅ 128x32 pixels (tamaño perfecto para Corne)
