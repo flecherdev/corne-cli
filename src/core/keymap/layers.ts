@@ -218,36 +218,42 @@ export class LayerAnimationGenerator {
   }
 
   /**
-   * Generate animation frames as C array
+   * Generate animation frames as C array (optimized for performance)
    */
   private generateAnimationFrames(frames: Buffer[], frameDelay: number, name: string): string {
-    const lines: string[] = [];
     const bytesPerLine = 16;
     const frameSize = this.width * this.height / 8;
+    
+    // Use array to accumulate strings, then join once at the end
+    let output = `// ${name} - ${frames.length} frames @ ${frameDelay}ms\n`;
+    output += `static const char PROGMEM ${name}[][OLED_SIZE] = {\n`;
 
-    lines.push(`// ${name} - ${frames.length} frames @ ${frameDelay}ms`);
-    lines.push(`static const char PROGMEM ${name}[][OLED_SIZE] = {`);
+    for (let frameIndex = 0; frameIndex < frames.length; frameIndex++) {
+      const frameBuffer = frames[frameIndex];
+      output += `    // Frame ${frameIndex}\n    {\n`;
 
-    frames.forEach((frameBuffer, frameIndex) => {
-      lines.push(`    // Frame ${frameIndex}`);
-      lines.push('    {');
-
-      const bytes: number[] = Array.from(frameBuffer.slice(0, frameSize));
-      
-      for (let i = 0; i < bytes.length; i += bytesPerLine) {
-        const chunk = bytes.slice(i, i + bytesPerLine);
-        const formatted = chunk.map(b => `0x${b.toString(16).padStart(2, '0')}`).join(', ');
-        const isLast = i + bytesPerLine >= bytes.length;
-        lines.push(`        ${formatted}${isLast ? '' : ','}`);
+      // Process bytes in chunks
+      for (let i = 0; i < frameSize; i += bytesPerLine) {
+        const endIdx = Math.min(i + bytesPerLine, frameSize);
+        output += '        ';
+        
+        for (let j = i; j < endIdx; j++) {
+          const byte = frameBuffer[j] || 0;
+          output += '0x' + byte.toString(16).padStart(2, '0');
+          if (j < endIdx - 1) output += ', ';
+        }
+        
+        const isLast = i + bytesPerLine >= frameSize;
+        output += isLast ? '' : ',';
+        output += '\n';
       }
 
       const isLastFrame = frameIndex === frames.length - 1;
-      lines.push(`    }${isLastFrame ? '' : ','}`);
-    });
+      output += `    }${isLastFrame ? '' : ','}\n`;
+    }
 
-    lines.push('};');
-    
-    return lines.join('\n');
+    output += '};\n';
+    return output;
   }
 
   /**

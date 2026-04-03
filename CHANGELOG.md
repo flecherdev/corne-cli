@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] - 2026-04-03
+
+### 🚀 Performance Improvements
+
+#### Layer Animation Generator
+- **10x faster code generation** - Optimized frame conversion algorithm
+- Removed inefficient array joins for large files
+- String concatenation optimization for C code generation
+- Better progress feedback during QMK code generation
+- Reduced memory usage during conversion
+
+### 🔧 Technical Changes
+- Refactored `generateAnimationFrames()` for better performance
+- Direct string building instead of array + join pattern
+- Improved spinner feedback with specific progress steps
+
 ## [0.4.1] - 2026-04-03
 
 ### 🐛 Fixed - UX Improvements

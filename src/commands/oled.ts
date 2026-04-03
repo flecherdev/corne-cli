@@ -862,11 +862,7 @@ export async function generateLayerAnimationCommand(options: any): Promise<void>
       return;
     }
 
-    // Generate QMK code
-    const spinner = ora('Generating QMK code...').start();
-    const qmkCode = generator.generateQMKCode(animationSet);
-
-    // Get output filename
+    // Get output filename first
     const outputAnswer = await inquirer.prompt([
       {
         type: 'input',
@@ -877,6 +873,13 @@ export async function generateLayerAnimationCommand(options: any): Promise<void>
     ]);
 
     const outputPath = path.join(process.cwd(), outputAnswer.output);
+    
+    // Generate QMK code (with progress feedback)
+    const spinner = ora('Generating QMK code...').start();
+    spinner.text = 'Generating header and constants...';
+    const qmkCode = generator.generateQMKCode(animationSet);
+    
+    spinner.text = 'Writing output file...';
     await fs.writeFile(outputPath, qmkCode, 'utf-8');
 
     // Generate rules.mk addition
