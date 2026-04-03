@@ -109,13 +109,13 @@ New-Item -ItemType Directory -Force -Path "."
 
 ### Paso 3.2: Copiar archivos
 
-1. **Copia** `examples\moco-jump-32x32_oled_anim.h` a la carpeta `mi_animacion`
+1. **Copia** `examples\king_oled_anim.h` a la carpeta `mi_animacion`
 
 2. **Copia** `examples\keymap_example.c` y renómbralo a `keymap.c` en la carpeta `mi_animacion`
 
 ```powershell
 # Ejemplo desde PowerShell (ajusta las rutas)
-Copy-Item "C:\projects\tools\corne-cli\examples\moco-jump-32x32_oled_anim.h" `
+Copy-Item "C:\projects\tools\corne-cli\examples\king_oled_anim.h" `
           "C:\Users\TuUsuario\qmk_firmware\keyboards\crkbd\keymaps\mi_animacion\"
 
 Copy-Item "C:\projects\tools\corne-cli\examples\keymap_example.c" `
@@ -165,7 +165,7 @@ qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
 ├── keymap.c
 ├── config.h
 ├── rules.mk
-└── moco-jump-32x32_oled_anim.h
+└── king_oled_anim.h
 ```
 
 ## 4️⃣ Compilar el Firmware
@@ -222,7 +222,7 @@ El proceso continuará automáticamente:
 ## 6️⃣ ¡Listo! Verificar
 
 1. El teclado se reiniciará automáticamente
-2. Deberías ver **tu animación del robot verde saltando** en las pantallas OLED
+2. Deberías ver **tu animación** en las pantallas OLED
 3. La animación se repite en loop (4 frames, 400ms cada uno)
 
 ## 🔧 Troubleshooting
@@ -265,7 +265,7 @@ oled_rotation_t oled_init_user(oled_rotation_t rotation) {
 
 ### Animación muy lenta/rápida
 
-Edita `moco-jump-32x32_oled_anim.h`:
+Edita `king_oled_anim.h`:
 ```c
 #define ANIM_FRAME_DURATION 100  // Prueba valores entre 50-500ms
 ```

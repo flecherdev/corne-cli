@@ -47,11 +47,13 @@ Transform your OLED displays with animated GIFs!
 
 ### Real Example
 
-![Animated Robot Demo](examples/moco-jump-32x32.gif)
+![Corne CLI - Kings and Pigs Mascot](examples/king.png)
+
+*Mascot image from [Kings and Pigs](https://pixelfrog-assets.itch.io/kings-and-pigs) by Pixelfrog Assets*
 
 **What you can do:**
 - ✅ Convert any GIF to QMK animation (4-10 frames recommended)
-- ✅ Display animatioxxxxcccfxns on OLED screens (128x32 or 128x64)
+- ✅ Display animations on OLED screens (128x32 or 128x64)
 - ✅ Show live keypress feedback on the other OLED
 - ✅ Layer-based animations (different animation per layer)
 - ✅ Optimized for smooth playback with no input lag
@@ -489,6 +491,10 @@ We welcome contributions! Areas where help is needed:
 - Bug reports and feature requests
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 🎨 Credits
+
+**Mascot Image**: The king character used in our project mascot is from the [Kings and Pigs](https://pixelfrog-assets.itch.io/kings-and-pigs) asset pack by [Pixelfrog Assets](https://pixelfrog-assets.itch.io/). Licensed for free use with attribution.
 
 ## 📜 License
 

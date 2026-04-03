@@ -220,7 +220,7 @@ C:\Users\TuUsuario\corne-backups\
 │   ├── keymap.c
 │   ├── config.h
 │   ├── rules.mk
-│   ├── moco-jump-32x32_oled_anim.h
+│   ├── king_oled_anim.h
 │   └── README.md
 │
 ├── backup_default_2026-04-01_143022.hex  (firmware compilado)

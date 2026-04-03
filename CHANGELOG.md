@@ -82,7 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Complete `keymap.c` with animations and key display
   - `config.h` template with OLED settings
   - `rules.mk` with proper OLED driver configuration
-  - Animation header file (`moco-jump-32x32_oled_anim.h`)
+  - Animation header file (`king_oled_anim.h`)
 
 ### 🐛 Fixed
 
@@ -125,8 +125,8 @@ New Files:
 ├── ROADMAP.md                              - Project roadmap
 ├── CHANGELOG.md                            - This file
 ├── examples/
-│   ├── moco-jump-32x32.gif                - Example animated GIF
-│   ├── moco-jump-32x32_oled_anim.h        - Generated animation header
+│   ├── king.png                           - Example animated image (Kings and Pigs by Pixelfrog Assets)
+│   ├── king_oled_anim.h                   - Generated animation header
 │   ├── keymap_example.c                   - Complete keymap with animation
 │   ├── config.h                           - OLED configuration
 │   ├── rules.mk                           - Build rules

@@ -37,7 +37,7 @@ QMK en Windows requiere MSYS2. Aquí está el proceso correcto.
    mkdir -p ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion
    
    # Copiar archivos
-   cp moco-jump-32x32_oled_anim.h ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
+   cp king_oled_anim.h ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
    cp keymap_example.c ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/keymap.c
    cp config.h ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
    cp rules.mk ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
@@ -87,7 +87,7 @@ python -m pip install -r requirements.txt
 New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\qmk_firmware\keyboards\crkbd\keymaps\mi_animacion"
 
 # Copiar archivos
-Copy-Item "C:\projects\tools\corne-cli\examples\moco-jump-32x32_oled_anim.h" `
+Copy-Item "C:\projects\tools\corne-cli\examples\king_oled_anim.h" `
           "$env:USERPROFILE\qmk_firmware\keyboards\crkbd\keymaps\mi_animacion\"
           
 Copy-Item "C:\projects\tools\corne-cli\examples\keymap_example.c" `

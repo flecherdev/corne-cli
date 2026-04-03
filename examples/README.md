@@ -7,8 +7,8 @@ Esta carpeta contiene todo lo necesario para configurar tu teclado Corne con la 
 ### 🎬 Animación Generada
 | Archivo | Descripción |
 |---------|-------------|
-| [`moco-jump-32x32.gif`](moco-jump-32x32.gif) | GIF original del robot verde (4 frames) |
-| [`moco-jump-32x32_oled_anim.h`](moco-jump-32x32_oled_anim.h) | Código QMK generado con la animación |
+| [`king.png`](king.png) | Imagen mascota del proyecto (Kings and Pigs by Pixelfrog Assets) |
+| [`king_oled_anim.h`](king_oled_anim.h) | Código QMK generado con la animación |
 
 ### 📝 Archivos de Configuración
 | Archivo | Descripción |
@@ -82,17 +82,17 @@ Sigue la guía paso a paso: [`SETUP_GUIDE.md`](SETUP_GUIDE.md)
 
 ## 🎬 ¿Qué hace la animación?
 
-La animación del robot verde ([`moco-jump-32x32.gif`](moco-jump-32x32.gif)):
-- ✅ 4 frames de animación
-- ✅ 400ms por frame (2.5 FPS)
+La imagen del rey ([`king.png`](king.png)):
+- ✅ Mascota del proyecto
+- ✅ Pixel art adaptado para pantallas OLED
 - ✅ 128x32 pixels (tamaño perfecto para Corne)
-- ✅ Loop infinito
 - ✅ Ocupa ~2KB de memoria
+- 🎨 Imagen de [Kings and Pigs](https://pixelfrog-assets.itch.io/kings-and-pigs) by Pixelfrog Assets
 
 ### Vista Previa del Código Generado
 
 ```c
-// moco-jump-32x32_oled_anim.h
+// king_oled_anim.h
 #define ANIM_FRAME_DURATION 400
 #define ANIM_FRAME_COUNT 4
 #define OLED_SIZE 512
@@ -199,7 +199,7 @@ CONSOLE_ENABLE = no
 
 ### Animación se ve mal
 
-Ajusta en [`moco-jump-32x32_oled_anim.h`](moco-jump-32x32_oled_anim.h):
+Ajusta en [`king_oled_anim.h`](king_oled_anim.h):
 ```c
 #define ANIM_FRAME_DURATION 100  // Cambiar velocidad
 ```

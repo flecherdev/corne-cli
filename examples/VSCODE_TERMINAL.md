@@ -55,7 +55,7 @@ cd examples
 
 # Copiar archivos al keymap
 mkdir -p ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion
-cp moco-jump-32x32_oled_anim.h ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
+cp king_oled_anim.h ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
 cp keymap_example.c ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/keymap.c
 cp config.h ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
 cp rules.mk ~/qmk_firmware/keyboards/crkbd/keymaps/mi_animacion/
