@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] - 2026-04-03
+
+### 🔧 Fixed - OLED Animation Improvements
+
+#### Core Fixes
+- **Fixed GIF conversion** - Added `.normalise()` before threshold to prevent all-black frames
+- **Added rotation control** - New `--rotate` option for `oled generate` command (0, 90, 180, 270 degrees)
+- **Proper OLED rotation support** - Different rotations per side (e.g., OLED_ROTATION_270 for text, OLED_ROTATION_0 for animations)
+
+#### Documentation
+- Removed experimental layer animation features (not production-ready)
+- Added working example: keylogger on left + simple animation on right
+- Documented correct rotation configuration for split keyboards
+
+#### Breaking Changes
+- `oled layers` command marked as experimental (use `oled generate` with `--rotate` instead)
+- Removed `docs/LAYER_ANIMATIONS.md` (feature not stable)
+
+### 📖 Migration Guide
+For simple working animations, use:
+```bash
+corne-cli oled generate animation.gif -o anim.h --rotate 0
+```
+Then configure different OLED rotations per side in your keymap.c
+
 ## [0.4.2] - 2026-04-03
 
 ### 🚀 Performance Improvements

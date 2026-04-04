@@ -83,7 +83,8 @@ async function isAnimatedGif(imagePath: string): Promise<boolean> {
 async function extractGifFrames(
   imagePath: string,
   width: number,
-  height: number
+  height: number,
+  rotate: number = 0
 ): Promise<FrameData[]> {
   const metadata = await sharp(imagePath).metadata();
   const frameCount = metadata.pages || 1;
@@ -92,12 +93,20 @@ async function extractGifFrames(
   const frames: FrameData[] = [];
 
   for (let i = 0; i < frameCount; i++) {
-    const frameBuffer = await sharp(imagePath, { page: i })
+    let pipeline = sharp(imagePath, { page: i });
+    
+    // Apply rotation if specified
+    if (rotate !== 0) {
+      pipeline = pipeline.rotate(rotate);
+    }
+    
+    const frameBuffer = await pipeline
       .resize(width, height, {
         fit: 'contain',
         background: { r: 0, g: 0, b: 0, alpha: 1 },
       })
       .greyscale()
+      .normalise()
       .threshold(128)
       .raw()
       .toBuffer();
@@ -116,7 +125,7 @@ async function extractGifFrames(
  */
 export async function generateOLEDImageCommand(
   imagePath: string,
-  options: { side?: string; output?: string; preview?: boolean; width?: number; height?: number }
+  options: { side?: string; output?: string; preview?: boolean; width?: number; height?: number; rotate?: number }
 ): Promise<void> {
   try {
     const spinner = ora('Processing image...').start();
@@ -149,7 +158,7 @@ export async function generateOLEDImageCommand(
     
     if (isAnimated) {
       spinner.text = 'Extracting animation frames...';
-      const frames = await extractGifFrames(imagePath, width, height);
+      const frames = await extractGifFrames(imagePath, width, height, options.rotate || 0);
       
       spinner.text = `Converting ${frames.length} frames to QMK format...`;
       
@@ -200,12 +209,20 @@ export async function generateOLEDImageCommand(
       // Static image processing (original code)
       spinner.text = 'Processing static image...';
       
-      const imageBuffer = await sharp(imagePath)
+      let pipeline = sharp(imagePath);
+      
+      // Apply rotation if specified
+      if (options.rotate && options.rotate !== 0) {
+        pipeline = pipeline.rotate(options.rotate);
+      }
+      
+      const imageBuffer = await pipeline
         .resize(width, height, {
           fit: 'contain',
           background: { r: 0, g: 0, b: 0, alpha: 1 },
         })
         .greyscale()
+        .normalise()
         .threshold(128)
         .raw()
         .toBuffer();
@@ -961,6 +978,7 @@ export function registerOLEDCommands(program: Command): void {
     .option('-p, --preview', 'Show ASCII preview', false)
     .option('-w, --width <pixels>', 'OLED width in pixels (auto-detected if omitted)', parseInt)
     .option('-t, --height <pixels>', 'OLED height in pixels (auto-detected if omitted)', parseInt)
+    .option('-r, --rotate <degrees>', 'Rotate image (0, 90, 180, 270)', parseInt, 0)
     .action(generateOLEDImageCommand);
 
   oled
@@ -996,7 +1014,7 @@ export function registerOLEDCommands(program: Command): void {
 
   oled
     .command('layers')
-    .description('Generate layer-specific animations')
+    .description('[EXPERIMENTAL] Generate layer-specific animations - Use "oled generate --rotate" for stable animations')
     .option('-w, --width <pixels>', 'OLED width in pixels', parseInt)
     .option('-t, --height <pixels>', 'OLED height in pixels', parseInt)
     .action(generateLayerAnimationCommand);
