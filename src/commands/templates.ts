@@ -141,21 +141,31 @@ export async function applyTemplateCommand(name: string, options: { target?: str
 
     // If user provided a repo target (contains ':') we may be dealing with a remote; not handled here
 
-    // Simple variable substitution
+    // Simple variable substitution and file generation from template's `files` if present
     const vars: Record<string, string> = {
       PROFILE_NAME: keymap.name,
       AUTHOR: keymap.author || process.env.USER || '',
-    };
+      ...(keymap as any).variables || {},
+    } as Record<string, string>;
 
-    const keymapC = applyVariables(`#include QMK_KEYBOARD_H
+    if (Array.isArray((keymap as any).files) && (keymap as any).files.length > 0) {
+      for (const f of (keymap as any).files) {
+        const content = applyVariables(f.content, vars);
+        const p = path.join(dest, f.path);
+        await fs.mkdir(path.dirname(p), { recursive: true });
+        await fs.writeFile(p, content, 'utf-8');
+      }
+    } else {
+      const keymapC = applyVariables(`#include QMK_KEYBOARD_H
 // Example keymap generated from template {{PROFILE_NAME}}
 
 // Profile: {{PROFILE_NAME}}
 `, vars);
 
-    await fs.writeFile(path.join(dest, 'keymap.c'), keymapC, 'utf-8');
-    await fs.writeFile(path.join(dest, 'rules.mk'), applyVariables(`# rules for {{PROFILE_NAME}}\n`, vars), 'utf-8');
-    await fs.writeFile(path.join(dest, 'config.h'), applyVariables(`// config placeholder for {{PROFILE_NAME}}\n`, vars), 'utf-8');
+      await fs.writeFile(path.join(dest, 'keymap.c'), keymapC, 'utf-8');
+      await fs.writeFile(path.join(dest, 'rules.mk'), applyVariables(`# rules for {{PROFILE_NAME}}\n`, vars), 'utf-8');
+      await fs.writeFile(path.join(dest, 'config.h'), applyVariables(`// config placeholder for {{PROFILE_NAME}}\n`, vars), 'utf-8');
+    }
 
     console.log(chalk.green(`Generated example files at: ${dest}`));
   } catch (err: any) {
