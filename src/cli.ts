@@ -10,6 +10,7 @@ import { registerOLEDCommands } from './commands/oled';
 import { flashCommand } from './commands/flash';
 import { registerSetupCommand } from './commands/setup';
 import { registerTemplateCommands } from './commands/templates';
+import macosSetupCommand from './commands/macos';
 
 // Read version from package.json
 const packageJson = JSON.parse(
@@ -93,6 +94,14 @@ registerSetupCommand(program);
 
 // Register templates commands
 registerTemplateCommands(program);
+
+// macOS helper
+program
+  .command('system:macos-setup')
+  .description('Check Homebrew and show macOS QMK setup instructions')
+  .action(async () => {
+    await macosSetupCommand();
+  });
 
 // Error handling
 program.exitOverride();
