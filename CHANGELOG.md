@@ -172,6 +172,11 @@ Then configure different OLED rotations per side in your keymap.c
 - Zero input lag implementation
 - Battery-efficient design
 
+### ✨ Added - macOS helper
+
+- **New command:** `system:macos-setup` — detects Homebrew, shows macOS QMK setup steps, and can optionally run `brew install qmk/qmk/qmk` or the Homebrew installer (both are confirmation-gated). Added `--yes` to auto-confirm prompts for automation.
+
+
 ### 📊 Performance
 - Memory: ~512 bytes per frame in flash (PROGMEM)
 - CPU: Minimal impact (~1% per refresh)

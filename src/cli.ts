@@ -24,6 +24,14 @@ program
   .description('CLI tool for customizing Corne keyboards with QMK firmware')
   .version(packageJson.version);
 
+// Add a short usage example to help text
+program.addHelpText('after', `
+
+Short examples:
+  corne-cli system:macos-setup --yes      # Auto-confirm macOS Homebrew/QMK setup
+  corne-cli templates:install qwerty -k crkbd  # Install qwerty template into crkbd keymaps
+`);
+
 // Flash command
 program
   .command('flash [firmware]')
