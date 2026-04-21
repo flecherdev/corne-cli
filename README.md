@@ -199,6 +199,23 @@ If you want a guided first-time experience that creates a profile and example ke
 corne-cli setup
 ```
 
+### macOS helper
+
+If you're on macOS, Corne CLI can help detect Homebrew and optionally install QMK via Homebrew.
+
+Usage:
+
+```bash
+# Interactive (will prompt):
+corne-cli system:macos-setup
+
+# Auto-confirm prompts (non-interactive / scripts):
+corne-cli system:macos-setup --yes
+```
+
+Notes:
+- The `--yes` flag will auto-confirm prompts and may run `brew install qmk/qmk/qmk` or the Homebrew installer when necessary. Use carefully in CI or unattended scripts.
+
 The wizard will detect connected devices, check for the `qmk` CLI and a `qmk_firmware` folder, let you choose a template, save a profile to `./profiles`, and optionally generate example `keymap.c`, `config.h`, and `rules.mk` files for immediate compilation.
 
 ### Templates CLI

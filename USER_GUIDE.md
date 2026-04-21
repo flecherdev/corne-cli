@@ -38,6 +38,23 @@ python3 -m pip install --user qmk
 qmk setup
 ```
 
+#### macOS helper: `system:macos-setup`
+
+Corne CLI provides a helper command to detect Homebrew and guide macOS QMK setup. It can optionally run Homebrew/QMK install commands when confirmed.
+
+Usage:
+
+```bash
+# Interactive prompts
+corne-cli system:macos-setup
+
+# Auto-confirm prompts (use with caution)
+corne-cli system:macos-setup --yes
+```
+
+The `--yes` flag auto-confirms prompts and is useful for automation; it may run `brew install qmk/qmk/qmk` or the Homebrew installer when necessary.
+
+
 #### 2. Configure VS Code (Optional but Recommended)
 
 Add this to your `.vscode/settings.json`:
