@@ -9,6 +9,7 @@ import { registerKeymapCommands } from './commands/keymap';
 import { registerOLEDCommands } from './commands/oled';
 import { flashCommand } from './commands/flash';
 import { registerSetupCommand } from './commands/setup';
+import { registerTemplateCommands } from './commands/templates';
 
 // Read version from package.json
 const packageJson = JSON.parse(
@@ -89,6 +90,9 @@ registerOLEDCommands(program);
 
 // Register setup wizard
 registerSetupCommand(program);
+
+// Register templates commands
+registerTemplateCommands(program);
 
 // Error handling
 program.exitOverride();
