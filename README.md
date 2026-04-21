@@ -191,6 +191,17 @@ npm run build
 
 ### Your First Animated OLED
 
+### Interactive Setup Wizard
+
+If you want a guided first-time experience that creates a profile and example keymap files, run:
+
+```bash
+corne-cli setup
+```
+
+The wizard will detect connected devices, check for the `qmk` CLI and a `qmk_firmware` folder, let you choose a template, save a profile to `./profiles`, and optionally generate example `keymap.c`, `config.h`, and `rules.mk` files for immediate compilation.
+
+
 Complete walkthrough in [USER_GUIDE.md](USER_GUIDE.md), here's the TL;DR:
 
 1. **Get a GIF** - 128x32px recommended, 4-10 frames

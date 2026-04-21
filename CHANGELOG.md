@@ -122,6 +122,14 @@ Then configure different OLED rotations per side in your keymap.c
 
 ## [0.3.0] - 2026-04-03
 
+## [0.4.4] - 2026-04-21
+
+### ✨ Added - Interactive Setup Wizard
+
+- **New command**: `corne-cli setup` — guided, interactive wizard to create a keymap profile, detect environment (QMK CLI, qmk_firmware), and optionally generate example `keymap.c`, `config.h`, and `rules.mk` files.
+- Saves profiles to `./profiles` and can generate placeholder OLED headers when the template enables OLED.
+
+
 ### ✨ Added - WPM-Based Animations
 
 #### Core Feature

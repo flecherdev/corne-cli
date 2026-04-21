@@ -67,6 +67,48 @@ qmk --version
 
 ---
 
+## ⚙️ Interactive Setup Wizard (`setup`)
+
+If you're new to QMK or want a guided way to create a keymap profile and example files, use the interactive setup wizard.
+
+What it does:
+- Detects connected USB devices and known Corne keyboards
+- Detects whether `qmk` CLI is available on your PATH
+- Searches for a `qmk_firmware` folder in common locations and allows you to specify it
+- Lets you pick a keymap template or start empty
+- Saves a profile to `./profiles` and can generate example `keymap.c`, `config.h`, and `rules.mk` files
+
+Usage:
+
+```bash
+# Run the interactive wizard
+corne-cli setup
+```
+
+Typical flow:
+1. The wizard will list USB devices it can detect; you can choose one to auto-configure or skip.
+2. The wizard shows detected environment info (platform, `qmk` CLI presence, `qmk_firmware` path).
+3. Choose a template (e.g., `qwerty`) or start with an empty profile.
+4. Provide a profile name and optionally save it to `./profiles`.
+5. Optionally generate example keymap files directly into the current directory or into your `qmk_firmware` keymaps folder.
+
+Example: generate files in your current directory and compile
+
+```bash
+corne-cli setup
+# Follow prompts: choose empty template, name profile "my-first-profile", generate files to ./
+
+# Then (if you generated under a qmk keymap):
+cd ~/qmk_firmware/keyboards/crkbd/keymaps/my-first-profile
+qmk compile -kb crkbd/rev1 -km my-first-profile
+qmk flash -kb crkbd -km my-first-profile
+```
+
+Notes:
+- If `qmk` is not on your PATH the wizard will still create profiles and files; install QMK and add it to PATH to compile and flash.
+- Generated OLED header files are placeholders; run `corne-cli oled animate` to convert GIFs into QMK headers.
+
+
 ## 🎬 OLED Animations
 
 Transform your OLED displays with animated GIFs!

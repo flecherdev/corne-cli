@@ -8,6 +8,7 @@ import { deviceInfoCommand, waitForBootloaderCommand } from './commands/device';
 import { registerKeymapCommands } from './commands/keymap';
 import { registerOLEDCommands } from './commands/oled';
 import { flashCommand } from './commands/flash';
+import { registerSetupCommand } from './commands/setup';
 
 // Read version from package.json
 const packageJson = JSON.parse(
@@ -85,6 +86,9 @@ registerKeymapCommands(program);
 
 // Register OLED commands
 registerOLEDCommands(program);
+
+// Register setup wizard
+registerSetupCommand(program);
 
 // Error handling
 program.exitOverride();
