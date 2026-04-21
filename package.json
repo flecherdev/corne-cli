@@ -43,6 +43,7 @@
   },
   "homepage": "https://github.com/flecherdev/corne-cli#readme",
   "dependencies": {
+    "ajv": "^8.18.0",
     "boxen": "^5.1.2",
     "chalk": "^4.1.2",
     "cli-table3": "^0.6.3",

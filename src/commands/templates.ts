@@ -4,15 +4,35 @@ import path from 'path';
 import fs from 'fs/promises';
 import boxen from 'boxen';
 import inquirer from 'inquirer';
+import { exec as cpExec } from 'child_process';
+import { promisify } from 'util';
+import os from 'os';
+const exec = promisify(cpExec);
+import Ajv from 'ajv';
 import { Keymap } from '../types';
 import { profileManager } from '../core/keymap/manager';
 
 function validateTemplate(obj: any): { valid: boolean; errors?: string[] } {
-  const errors: string[] = [];
-  if (!obj) errors.push('Template is empty');
-  if (!obj.name) errors.push('Missing required field: name');
-  if (!obj.layers || !Array.isArray(obj.layers) || obj.layers.length === 0) errors.push('Template must include at least one layer');
-  return { valid: errors.length === 0, errors };
+  // Use AJV for schema validation
+  const schema = {
+    type: 'object',
+    required: ['name', 'layers'],
+    properties: {
+      name: { type: 'string' },
+      description: { type: 'string' },
+      author: { type: 'string' },
+      layers: { type: 'array', minItems: 1 },
+      config: { type: 'object' },
+    },
+    additionalProperties: true,
+  };
+
+  const ajv = new Ajv();
+  const validate = ajv.compile(schema as any);
+  const valid = validate(obj);
+  if (valid) return { valid: true };
+  const errors = (validate.errors || []).map(e => `${e.instancePath} ${e.message}`);
+  return { valid: false, errors };
 }
 
 function applyVariables(str: string, vars: Record<string, string>): string {
@@ -102,6 +122,8 @@ export async function applyTemplateCommand(name: string, options: { target?: str
 
     await fs.mkdir(dest, { recursive: true });
 
+    // If user provided a repo target (contains ':') we may be dealing with a remote; not handled here
+
     // Simple variable substitution
     const vars: Record<string, string> = {
       PROFILE_NAME: keymap.name,
@@ -136,6 +158,38 @@ export function registerTemplateCommands(program: Command) {
     .option('-t, --target <path>', 'Target directory to generate example files')
     .action(async (name: string, opts: any) => {
       await applyTemplateCommand(name, { target: opts.target });
+    });
+
+  program
+    .command('templates:sync <repo>')
+    .description('Sync templates from a remote git repository (git must be installed)')
+    .action(async (repo: string) => {
+      const templatesDir = path.join(__dirname, '../../templates');
+      const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'templates-'));
+      try {
+        console.log(chalk.cyan(`Cloning ${repo} into ${tmpDir}...`));
+        await exec(`git clone --depth 1 ${repo} ${tmpDir}`);
+        // copy any *.json from tmpDir/templates to templatesDir
+        const srcDir = path.join(tmpDir, 'templates');
+        const files = await fs.readdir(srcDir).catch(() => []);
+        const jsonFiles = files.filter(f => f.endsWith('.json'));
+        if (jsonFiles.length === 0) {
+          console.log(chalk.yellow('No template JSON files found in remote repo under /templates')); 
+          return;
+        }
+        await fs.mkdir(templatesDir, { recursive: true });
+        for (const f of jsonFiles) {
+          const src = path.join(srcDir, f);
+          const dest = path.join(templatesDir, f);
+          await fs.copyFile(src, dest);
+          console.log(chalk.green(`Synced template: ${f}`));
+        }
+      } catch (err: any) {
+        console.error(chalk.red('Failed to sync templates:'), err.message || err);
+      } finally {
+        // cleanup tmpDir
+        try { await fs.rm(tmpDir, { recursive: true, force: true }); } catch {}
+      }
     });
 }
 
