@@ -6,7 +6,7 @@ import path from 'path';
 import inquirer from 'inquirer';
 const exec = promisify(cpExec);
 
-export async function macosSetupCommand(): Promise<void> {
+export async function macosSetupCommand(autoYes = false): Promise<void> {
   console.log(chalk.bold('macOS QMK setup helper'));
   console.log('This command detects Homebrew and provides next-step instructions.');
 
@@ -18,6 +18,13 @@ export async function macosSetupCommand(): Promise<void> {
     console.log(`- Ensure Xcode command line tools are installed: ${chalk.cyan('xcode-select --install')}`);
     console.log(`- Install qmk dependencies: ${chalk.cyan('brew install qmk/qmk/qmk')}`);
     console.log(`- Follow official macOS QMK setup: ${chalk.cyan('docs/MACOS_QMK_SETUP.md')}`);
+
+    // small helper to centralize confirmations and allow `--yes`
+    async function confirm(message: string, def = false) {
+      if (autoYes) return true;
+      const r = await inquirer.prompt([{ type: 'confirm', name: 'ok', message, default: def }]);
+      return Boolean((r as any).ok);
+    }
 
     // Offer to install qmk via Homebrew (confirmation gated)
     try {

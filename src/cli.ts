@@ -99,8 +99,9 @@ registerTemplateCommands(program);
 program
   .command('system:macos-setup')
   .description('Check Homebrew and show macOS QMK setup instructions')
-  .action(async () => {
-    await macosSetupCommand();
+  .option('-y, --yes', 'Auto-confirm prompts')
+  .action(async (opts) => {
+    await macosSetupCommand(Boolean(opts.yes));
   });
 
 // Error handling
