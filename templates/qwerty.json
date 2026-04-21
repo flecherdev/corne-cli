@@ -11,12 +11,19 @@
         ["KC_LSFT", "KC_Z", "KC_X", "KC_C", "KC_V", "KC_B", "KC_N", "KC_M", "KC_COMM", "KC_DOT", "KC_SLSH", "KC_ESC"],
         ["KC_LGUI", "MO(1)", "KC_SPC", "KC_ENT", "MO(2)", "KC_RALT"]
       ]
-    },
     {
-      "name": "LOWER",
-      "keys": [
-        ["KC_TAB", "KC_1", "KC_2", "KC_3", "KC_4", "KC_5", "KC_6", "KC_7", "KC_8", "KC_9", "KC_0", "KC_BSPC"],
-        ["KC_LCTL", "KC_EXLM", "KC_AT", "KC_HASH", "KC_DLR", "KC_PERC", "KC_CIRC", "KC_AMPR", "KC_ASTR", "KC_LPRN", "KC_RPRN", "KC_PIPE"],
+      "name": "qwerty",
+      "description": "Basic qwerty template",
+      "author": "corne-cli",
+      "layers": [["KC_Q"]],
+      "files": [
+        { "path": "keymap.c", "content": "#include QMK_KEYBOARD_H\n// keymap for {{PROFILE_NAME}}\n" },
+        { "path": "config.h", "content": "// config for {{PROFILE_NAME}}\n" }
+      ],
+      "variables": {
+        "PROFILE_NAME": "qwerty"
+      }
+    }
         ["KC_LSFT", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_TRNS", "KC_MINS", "KC_EQL", "KC_LBRC", "KC_RBRC", "KC_BSLS", "KC_GRV"],
         ["KC_LGUI", "KC_TRNS", "KC_SPC", "KC_ENT", "MO(3)", "KC_RALT"]
       ]

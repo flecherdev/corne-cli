@@ -108,6 +108,35 @@ Notes:
 - If `qmk` is not on your PATH the wizard will still create profiles and files; install QMK and add it to PATH to compile and flash.
 - Generated OLED header files are placeholders; run `corne-cli oled animate` to convert GIFs into QMK headers.
 
+## 🧩 Templates: List, Apply, Sync, Install
+
+Corne CLI includes a templates system to quickly scaffold keymaps and OLED setups.
+
+- `corne-cli templates:list` — list available local templates (in `templates/`).
+- `corne-cli templates:apply <name>` — save a template to `./profiles` and optionally generate example files in the current directory or a target path. The command validates templates and asks before overwriting existing files.
+- `corne-cli templates:sync <git-repo>` — download templates from a remote git repository (expects templates under `/templates` in the repo).
+- `corne-cli templates:install <name> [--keyboard <kb>] [--qmk-home <path>]` — install a template directly into `qmk_firmware/keyboards/<keyboard>/keymaps/<name>`.
+
+Usage examples:
+
+```bash
+# List templates
+corne-cli templates:list
+
+# Apply a template and generate files in current dir
+corne-cli templates:apply qwerty --target ./
+
+# Sync templates from a remote repo
+corne-cli templates:sync https://github.com/me/keyboard-templates.git
+
+# Install template into a QMK keyboard (prompts to auto-detect qmk_firmware and keyboard)
+corne-cli templates:install qwerty --keyboard crkbd
+```
+
+Tips:
+- If you don't pass `--keyboard` to `templates:install`, the CLI will try to auto-detect keyboards under your `qmk_firmware` installation and prompt you to choose when multiple keyboards are found.
+- The tool validates template JSON with a schema and will list issues if a template is malformed.
+
 
 ## 🎬 OLED Animations
 

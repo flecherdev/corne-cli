@@ -201,6 +201,19 @@ corne-cli setup
 
 The wizard will detect connected devices, check for the `qmk` CLI and a `qmk_firmware` folder, let you choose a template, save a profile to `./profiles`, and optionally generate example `keymap.c`, `config.h`, and `rules.mk` files for immediate compilation.
 
+### Templates CLI
+
+Commands to manage and install templates:
+
+```bash
+corne-cli templates:list       # show local templates
+corne-cli templates:apply NAME --target ./out  # save profile and generate files
+corne-cli templates:sync GIT_REPO            # download templates from a repo
+corne-cli templates:install NAME --keyboard crkbd  # install directly into qmk_firmware
+```
+
+`templates:install` will try to auto-detect your `qmk_firmware` installation if you don't pass `--qmk-home`, and will prompt to choose a keyboard if multiple are present.
+
 
 Complete walkthrough in [USER_GUIDE.md](USER_GUIDE.md), here's the TL;DR:
 
