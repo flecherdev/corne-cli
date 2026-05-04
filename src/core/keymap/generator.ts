@@ -4,6 +4,7 @@ export interface KeymapGeneratorOptions {
   keyboard: string;
   layout?: string;
   includeComments?: boolean;
+  via?: boolean;
 }
 
 export class KeymapGenerator {
@@ -30,7 +31,8 @@ export class KeymapGenerator {
       ['KC_W', 'KC_W'],
       ['KC_E', 'KC_E'],
       ['KC_R', 'KC_R'],
-      ['KC_T', 'KC_Y'],
+      ['KC_T', 'KC_T'],
+      ['KC_Y', 'KC_Y'],
       ['KC_U', 'KC_U'],
       ['KC_I', 'KC_I'],
       ['KC_O', 'KC_O'],

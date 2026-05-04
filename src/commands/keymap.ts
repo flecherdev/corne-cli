@@ -526,6 +526,7 @@ export function registerKeymapCommands(program: Command): void {
     .option('--no-flash', 'Only compile, do not flash')
     .option('-y, --yes', 'Auto-confirm all prompts')
     .option('--rp2040', 'Compile for RP2040 microcontroller (auto-detects UF2 volume)')
+    .option('--via', 'Enable VIA support for dynamic keymap configuration')
     .action(installKeymapCommand);
 
   keymap
@@ -539,6 +540,24 @@ async function flashKeymapCommand(options: { keyboard?: string }): Promise<void>
   const keyboard = options.keyboard || 'crkbd';
   const spinner = ora('Searching for UF2 file...').start();
 
+  console.log(chalk.cyan('\n🔍 Diagnostics:'));
+
+  const uf2Volumes = ['/Volumes/RPI-RP2', '/Volumes/RPI-RP2 (1)', '/Volumes/UF2', '/Volumes/dpi-rp2'];
+  let bootVolume: string | null = null;
+
+  for (const vol of uf2Volumes) {
+    try {
+      await fs.access(vol);
+      bootVolume = vol;
+      console.log(chalk.green(`  ✓ Bootloader volume detected: ${vol}`));
+      break;
+    } catch {}
+  }
+
+  if (!bootVolume) {
+    console.log(chalk.yellow('  ⚠ No bootloader volume found'));
+  }
+
   try {
     const qmkHome = await findQmkHome();
     if (!qmkHome) {
@@ -548,6 +567,7 @@ async function flashKeymapCommand(options: { keyboard?: string }): Promise<void>
 
     const qmkFiles = await fs.readdir(qmkHome);
     const uf2Files = qmkFiles.filter(f => f.endsWith('.uf2')).map(f => path.join(qmkHome, f));
+
     if (uf2Files.length === 0) {
       spinner.fail(chalk.red('No UF2 file found. Compile a keymap first.'));
       return;
@@ -561,39 +581,46 @@ async function flashKeymapCommand(options: { keyboard?: string }): Promise<void>
 
     spinner.succeed(chalk.green(`Found: ${path.basename(latest)}`));
 
-    const volumes = ['/Volumes/RPI-RP2', '/Volumes/RPI-RP2 (1)', '/Volumes/UF2', '/Volumes/dpi-rp2'];
-    let mountedVolume: string | null = null;
+    if (!bootVolume) {
+      console.log(chalk.yellow('\n⚠ Keyboard not in bootloader mode.'));
+      console.log(chalk.cyan('  To enter bootloader:'));
+      console.log(chalk.gray('    1. Disconnect USB'));
+      console.log(chalk.gray('    2. Hold BOOT button (or closest to USB)'));
+      console.log(chalk.gray('    3. Connect USB while holding BOOT'));
+      console.log(chalk.gray('    4. Wait for RPI-RP2 volume to appear'));
+      console.log(chalk.cyan('\nPress Enter when keyboard is in bootloader mode...'));
+      await inquirer.prompt([{ type: 'input', name: 'wait', message: '' }]);
 
-    for (const vol of volumes) {
-      try {
-        await fs.access(vol);
-        mountedVolume = vol;
-        break;
-      } catch {}
-    }
-
-    if (!mountedVolume) {
-      console.log(chalk.yellow('\n⚠ No UF2 volume detected.'));
-      console.log(chalk.cyan('Put your keyboard in bootloader mode and press Enter...'));
-      await inquirer.prompt([{ type: 'input', name: 'wait', message: 'Press Enter when ready...' }]);
-
-      for (const vol of volumes) {
+      for (const vol of uf2Volumes) {
         try {
           await fs.access(vol);
-          mountedVolume = vol;
+          bootVolume = vol;
+          console.log(chalk.green(`  ✓ Bootloader volume detected: ${vol}`));
           break;
         } catch {}
       }
     }
 
-    if (!mountedVolume) {
-      spinner.fail(chalk.red('Volume not found'));
+    if (!bootVolume) {
+      spinner.fail(chalk.red('Bootloader volume not found'));
+      console.log(chalk.red('\n❌ Troubleshooting:'));
+      console.log(chalk.gray('  - Check USB cable is connected'));
+      console.log(chalk.gray('  - Try a different USB port'));
+      console.log(chalk.gray('  - Check if BOOT button is working'));
+      console.log(chalk.gray('  - Verify PCB has valid RP2040 firmware'));
       return;
     }
 
-    await fs.copyFile(latest, path.join(mountedVolume, path.basename(latest)));
+    await fs.copyFile(latest, path.join(bootVolume, path.basename(latest)));
     spinner.succeed(chalk.green(`✓ Flashed: ${path.basename(latest)}`));
-    console.log(chalk.cyan('\n🔄 Keyboard will reconnect in 3 seconds...'));
+    console.log(chalk.cyan('\n🔄 Waiting for keyboard to reconnect...'));
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    console.log(chalk.green('\n✅ Flash complete!'));
+    console.log(chalk.cyan('\nIf keyboard does not work:'));
+    console.log(chalk.gray('  - Check if detected in System Preferences > Keyboard'));
+    console.log(chalk.gray('  - Try via.app or remap.io to detect'));
 
   } catch (error) {
     spinner.fail(chalk.red('Flash failed'));
@@ -601,11 +628,12 @@ async function flashKeymapCommand(options: { keyboard?: string }): Promise<void>
   }
 }
 
-async function installKeymapCommand(name: string, options: { keyboard?: string; flash?: boolean; yes?: boolean; rp2040?: boolean }): Promise<void> {
+async function installKeymapCommand(name: string, options: { keyboard?: string; flash?: boolean; yes?: boolean; rp2040?: boolean; via?: boolean }): Promise<void> {
   const spinner = ora('Loading keymap...').start();
   const keyboard = options.keyboard || 'crkbd';
   const doFlash = options.flash !== false;
   const isRp2040 = options.rp2040 === true;
+  const isVia = options.via === true;
 
   try {
     const exists = await profileManager.exists(name);
@@ -633,6 +661,12 @@ async function installKeymapCommand(name: string, options: { keyboard?: string; 
     await fs.writeFile(keymapPath, code);
 
     console.log(chalk.green(`✓ Keymap copied to ${keymapPath}`));
+
+    if (isVia) {
+      const rulesPath = path.join(keymapDir, 'rules.mk');
+      await fs.writeFile(rulesPath, 'VIA_ENABLE = yes\n');
+      console.log(chalk.green(`✓ VIA enabled: ${rulesPath}`));
+    }
 
     if (!doFlash) {
       const compileCmd = isRp2040
