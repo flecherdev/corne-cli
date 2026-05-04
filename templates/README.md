@@ -1,44 +1,31 @@
-# Keymap Templates
+# Templates
 
-This directory contains predefined keymap templates for quick setup.
+Templates para el teclado Corne.
 
-## Available Templates (to be implemented)
+## Disponibles
 
-- **qwerty.json** - Standard QWERTY layout
-- **dvorak.json** - Dvorak layout
-- **colemak.json** - Colemak layout
-- **gaming.json** - Gaming-optimized layout
-- **programming.json** - Programming-focused layout with symbols
-- **vim.json** - Vim-style navigation
-- **emacs.json** - Emacs-style keybindings
+| Template | Descripción |
+|----------|-------------|
+| `minimal` | Layout básico mínimo - punto de partida |
+| `qwerty` | QWERTY estándar con capas de función y navegación |
+| `programmer` | Optimizado para programación - símbolos, números, navegación rápida |
+| `designer` | Para diseño - herramientas creativas, RGB, navegación |
+| `audio` | Para producción de audio - controles de medios, shortcuts DAW |
+| `gamer` | Gaming - WASD, macros, cambio rápido de perfiles |
+| `writer` | Escritura - acentos, navegación, funciones |
 
-## Template Format
+## Uso
 
-Each template should be a JSON file following this structure:
+```bash
+# Listar templates
+corne-cli templates:list
 
-```json
-{
-  "name": "template-name",
-  "description": "Description of the layout",
-  "layers": [
-    {
-      "name": "BASE",
-      "keys": [
-        ["KC_TAB", "KC_Q", "...", "KC_BSPC"],
-        ["KC_LCTL", "KC_A", "...", "KC_QUOT"],
-        ["KC_LSFT", "KC_Z", "...", "KC_ESC"],
-        ["KC_LGUI", "MO(1)", "KC_SPC", "KC_ENT", "MO(2)", "KC_RALT"]
-      ]
-    }
-  ]
-}
-```
+# Crear keymap desde template
+corne-cli keymap:create mi-layout --template programmer
 
-## Using @keymap-manager
+# Aplicar y generar archivos
+corne-cli templates:apply programmer --target ./mi-keymap
 
-Ask the keymap manager agent to create templates:
-
-```
-@keymap-manager create a QWERTY template for Corne
-@keymap-manager create a programming-focused layout template
+# Compilar
+corne-cli compile --keymap mi-layout --output keymap.c
 ```

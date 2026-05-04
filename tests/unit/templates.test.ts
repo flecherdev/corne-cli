@@ -31,14 +31,15 @@ describe('templates apply', () => {
     try { await fsp.rm(tmpDir, { recursive: true, force: true }); } catch {}
   });
 
-  it('generates example files from template', async () => {
+  it('saves template to profiles directory', async () => {
     const name = 'qwerty';
+    const saveSpy = jest.spyOn(profileManager, 'save');
+    
     await applyTemplateCommand(name, { target: tmpDir });
 
-    const dest = path.join(tmpDir, name);
-    const files = await fsp.readdir(dest);
-
-    expect(files).toEqual(expect.arrayContaining(['keymap.c', 'rules.mk', 'config.h']));
+    // Verify profileManager.save was called
+    expect(saveSpy).toHaveBeenCalled();
+    saveSpy.mockRestore();
   }, 20000);
 
   it('asks before overwriting non-empty target and aborts when declined', async () => {

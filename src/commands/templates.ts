@@ -8,48 +8,30 @@ import { exec as cpExec } from 'child_process';
 import { promisify } from 'util';
 import os from 'os';
 const exec = promisify(cpExec);
-import Ajv from 'ajv';
 import { Keymap } from '../types';
 import { profileManager } from '../core/keymap/manager';
 
 function validateTemplate(obj: any): { valid: boolean; errors?: string[] } {
-  // Use AJV for schema validation with a more strict schema
-  const schema = {
-    $id: 'https://corne-cli.dev/schemas/template.json',
-    type: 'object',
-    required: ['name', 'layers', 'files'],
-    properties: {
-      name: { type: 'string', minLength: 1 },
-      description: { type: 'string' },
-      author: { type: 'string' },
-      layers: { type: 'array', minItems: 1, items: { type: 'array' } },
-      config: { type: 'object' },
-      files: {
-        type: 'array',
-        items: {
-          type: 'object',
-          required: ['path', 'content'],
-          properties: {
-            path: { type: 'string' },
-            content: { type: 'string' },
-          },
-          additionalProperties: false,
-        },
-      },
-      variables: {
-        type: 'object',
-        additionalProperties: { type: 'string' },
-      },
-    },
-    additionalProperties: false,
-  };
+  // Validate template structure
+  const errors: string[] = [];
 
-  const ajv = new Ajv({ allErrors: true });
-  const validate = ajv.compile(schema as any);
-  const valid = validate(obj);
-  if (valid) return { valid: true };
-  const errors = (validate.errors || []).map(e => `${e.instancePath} ${e.message}`);
-  return { valid: false, errors };
+  if (!obj.name || typeof obj.name !== 'string') {
+    errors.push('Template must have a name (string)');
+  }
+
+  if (!obj.layers || !Array.isArray(obj.layers) || obj.layers.length === 0) {
+    errors.push('Template must have at least one layer');
+  }
+
+  // Validate each layer
+  for (let i = 0; i < obj.layers.length; i++) {
+    const layer = obj.layers[i];
+    if (!layer.keys || !Array.isArray(layer.keys)) {
+      errors.push(`/layers/${i} must have 'keys' as array`);
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
 }
 
 function applyVariables(str: string, vars: Record<string, string>): string {
