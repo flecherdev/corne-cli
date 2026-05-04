@@ -72,10 +72,10 @@ export class KeymapValidator {
           continue;
         }
 
-        // Check key count (Corne has 42 keys)
+        // Check key count (Corne with LAYOUT_split_3x6_3 has 40 keys)
         const keyCount = layer.keys.flat().length;
-        if (keyCount !== 42) {
-          errors.push(`Layer "${layer.name}" has ${keyCount} keys, expected 42`);
+        if (keyCount !== 40 && keyCount !== 42) {
+          errors.push(`Layer "${layer.name}" has ${keyCount} keys, expected 40 (crkbd) or 42`);
         }
 
         // Validate individual key codes

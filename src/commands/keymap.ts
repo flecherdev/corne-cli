@@ -5,8 +5,10 @@ import ora from 'ora';
 import Table from 'cli-table3';
 import boxen from 'boxen';
 import fs from 'fs/promises';
+import fsp from 'fs';
 import path from 'path';
-import { ProfileManager, KeymapValidator } from '../core/keymap';
+import { spawn } from 'child_process';
+import { ProfileManager, KeymapValidator, keymapGenerator } from '../core/keymap';
 import type { Keymap, OLEDConfig } from '../types';
 
 const profileManager = new ProfileManager();
@@ -516,4 +518,241 @@ export function registerKeymapCommands(program: Command): void {
     .alias('rm')
     .description('Delete a keymap')
     .action(deleteKeymapCommand);
+
+  keymap
+    .command('install <name>')
+    .description('Install keymap to QMK and flash to keyboard')
+    .option('-k, --keyboard <name>', 'Keyboard name (crkbd, lily58, etc.)', 'crkbd')
+    .option('--no-flash', 'Only compile, do not flash')
+    .option('-y, --yes', 'Auto-confirm all prompts')
+    .option('--rp2040', 'Compile for RP2040 microcontroller (auto-detects UF2 volume)')
+    .action(installKeymapCommand);
+
+  keymap
+    .command('flash')
+    .description('Copy latest UF2 to keyboard in bootloader mode')
+    .option('-k, --keyboard <name>', 'Keyboard name', 'crkbd')
+    .action(flashKeymapCommand);
+}
+
+async function flashKeymapCommand(options: { keyboard?: string }): Promise<void> {
+  const keyboard = options.keyboard || 'crkbd';
+  const spinner = ora('Searching for UF2 file...').start();
+
+  try {
+    const qmkHome = await findQmkHome();
+    if (!qmkHome) {
+      spinner.fail(chalk.red('QMK not found'));
+      return;
+    }
+
+    const qmkFiles = await fs.readdir(qmkHome);
+    const uf2Files = qmkFiles.filter(f => f.endsWith('.uf2')).map(f => path.join(qmkHome, f));
+    if (uf2Files.length === 0) {
+      spinner.fail(chalk.red('No UF2 file found. Compile a keymap first.'));
+      return;
+    }
+
+    const latest = uf2Files.sort((a: string, b: string) => {
+      const statA = fsp.statSync(a);
+      const statB = fsp.statSync(b);
+      return statB.mtime.getTime() - statA.mtime.getTime();
+    })[0];
+
+    spinner.succeed(chalk.green(`Found: ${path.basename(latest)}`));
+
+    const volumes = ['/Volumes/RPI-RP2', '/Volumes/RPI-RP2 (1)', '/Volumes/UF2', '/Volumes/dpi-rp2'];
+    let mountedVolume: string | null = null;
+
+    for (const vol of volumes) {
+      try {
+        await fs.access(vol);
+        mountedVolume = vol;
+        break;
+      } catch {}
+    }
+
+    if (!mountedVolume) {
+      console.log(chalk.yellow('\n⚠ No UF2 volume detected.'));
+      console.log(chalk.cyan('Put your keyboard in bootloader mode and press Enter...'));
+      await inquirer.prompt([{ type: 'input', name: 'wait', message: 'Press Enter when ready...' }]);
+
+      for (const vol of volumes) {
+        try {
+          await fs.access(vol);
+          mountedVolume = vol;
+          break;
+        } catch {}
+      }
+    }
+
+    if (!mountedVolume) {
+      spinner.fail(chalk.red('Volume not found'));
+      return;
+    }
+
+    await fs.copyFile(latest, path.join(mountedVolume, path.basename(latest)));
+    spinner.succeed(chalk.green(`✓ Flashed: ${path.basename(latest)}`));
+    console.log(chalk.cyan('\n🔄 Keyboard will reconnect in 3 seconds...'));
+
+  } catch (error) {
+    spinner.fail(chalk.red('Flash failed'));
+    console.error(chalk.red((error as Error).message));
+  }
+}
+
+async function installKeymapCommand(name: string, options: { keyboard?: string; flash?: boolean; yes?: boolean; rp2040?: boolean }): Promise<void> {
+  const spinner = ora('Loading keymap...').start();
+  const keyboard = options.keyboard || 'crkbd';
+  const doFlash = options.flash !== false;
+  const isRp2040 = options.rp2040 === true;
+
+  try {
+    const exists = await profileManager.exists(name);
+    if (!exists) {
+      spinner.fail(chalk.red(`Keymap "${name}" not found`));
+      return;
+    }
+
+    const keymap = await profileManager.load(name);
+    spinner.succeed(chalk.green(`Loaded keymap "${name}"`));
+
+    const qmkHome = await findQmkHome();
+    if (!qmkHome) {
+      console.log(chalk.red('✗ QMK not found'));
+      console.log(chalk.cyan('Please install QMK first:'));
+      console.log(chalk.gray('  npm run start -- system:macos-setup --yes'));
+      return;
+    }
+
+    const keymapDir = path.join(qmkHome, 'keyboards', keyboard, 'keymaps', name);
+    await fs.mkdir(keymapDir, { recursive: true });
+
+    const code = keymapGenerator.generate(keymap, { keyboard });
+    const keymapPath = path.join(keymapDir, 'keymap.c');
+    await fs.writeFile(keymapPath, code);
+
+    console.log(chalk.green(`✓ Keymap copied to ${keymapPath}`));
+
+    if (!doFlash) {
+      const compileCmd = isRp2040
+        ? `qmk compile -kb ${keyboard} -km ${name} -e CONVERT_TO=rp2040_ce`
+        : `qmk compile -kb ${keyboard} -km ${name}`;
+      console.log(chalk.gray('\nTo compile and flash, run:'));
+      console.log(chalk.cyan(compileCmd));
+      return;
+    }
+
+    const hasQmk = await checkCommandExists('qmk');
+    if (!hasQmk) {
+      console.log(chalk.yellow('⚠ QMK CLI not found. Install with:'));
+      console.log(chalk.cyan('  pip install qmk'));
+      return;
+    }
+
+    console.log(chalk.cyan('\n📦 Compiling firmware...'));
+    const compileArgs = ['compile', '-kb', keyboard, '-km', name];
+    if (isRp2040) {
+      compileArgs.push('-e', 'CONVERT_TO=rp2040_ce');
+      console.log(chalk.gray('  (RP2040 mode)'));
+    }
+    await runCommand('qmk', compileArgs);
+
+    console.log(chalk.green('✓ Compilation successful!'));
+
+    if (isRp2040) {
+      console.log(chalk.cyan('\n🔄 Auto-detecting UF2 volume...'));
+      const uf2File = path.basename(keymapPath).replace('keymap.c', isRp2040 ? '_rp2040.uf2' : '.uf2');
+      const uf2Path = path.join(qmkHome, uf2File);
+      const altUf2 = path.join(qmkHome, `crkbd_rev1_${name}${isRp2040 ? '_rp2040_ce' : ''}.uf2`);
+
+      let finalUf2 = uf2Path;
+      try { await fs.access(uf2Path); }
+      catch { finalUf2 = altUf2; }
+
+      const volumes = ['/Volumes/RPI-RP2', '/Volumes/RPI-RP2 (1)', '/Volumes/UF2', '/Volumes/dpi-rp2'];
+      let mountedVolume: string | null = null;
+
+      for (const vol of volumes) {
+        try { await fs.access(vol); mountedVolume = vol; break; }
+        catch {}
+      }
+
+      if (!mountedVolume) {
+        console.log(chalk.yellow('\n⚠ Put keyboard in bootloader mode and press Enter...'));
+        await inquirer.prompt([{ type: 'input', name: 'wait', message: 'Press Enter when ready...' }]);
+        for (const vol of volumes) {
+          try { await fs.access(vol); mountedVolume = vol; break; }
+          catch {}
+        }
+      }
+
+      if (!mountedVolume) {
+        console.log(chalk.red('\n✗ UF2 volume not found. Firmware compiled at:'));
+        console.log(chalk.cyan(`  ${finalUf2}`));
+        console.log(chalk.gray('\nCopy manually to keyboard bootloader volume.'));
+        return;
+      }
+
+      await fs.copyFile(finalUf2, path.join(mountedVolume, path.basename(finalUf2)));
+      console.log(chalk.green(`\n✓ Flashed to keyboard!`));
+      console.log(chalk.cyan('\n🔄 Keyboard will reconnect in 3 seconds...'));
+      return;
+    }
+
+    // Check if keyboard is in bootloader mode
+    const { waitBootloader } = await inquirer.prompt([{
+      type: 'confirm',
+      name: 'waitBootloader',
+      message: chalk.yellow('Put your keyboard in bootloader mode and press Enter to flash'),
+      default: true,
+    }]);
+
+    if (waitBootloader) {
+      console.log(chalk.cyan('\n🔥 Flashing firmware...'));
+      await runCommand('qmk', ['flash', '-kb', keyboard, '-km', name]);
+      console.log(chalk.green('✓ Flash successful!'));
+    }
+
+  } catch (error) {
+    spinner.fail(chalk.red('Installation failed'));
+    console.error(chalk.red((error as Error).message));
+  }
+}
+
+async function findQmkHome(): Promise<string | null> {
+  const candidates = [
+    process.env.QMK_HOME,
+    path.join(process.env.HOME || '', 'qmk_firmware'),
+    path.join(process.env.HOME || '', '.qmk'),
+    path.join(process.env.HOME || '', 'qmk'),
+    '/usr/local/qmk_firmware',
+  ].filter(Boolean);
+
+  for (const p of candidates) {
+    try {
+      await fs.access(p!);
+      return p!;
+    } catch {}
+  }
+  return null;
+}
+
+async function checkCommandExists(cmd: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const proc = spawn(cmd, ['--version'], { stdio: 'ignore' });
+    proc.on('close', (code) => resolve(code === 0));
+    proc.on('error', () => resolve(false));
+  });
+}
+
+function runCommand(cmd: string, args: string[]): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(cmd, args, { stdio: 'inherit' });
+    proc.on('close', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`${cmd} exited with code ${code}`));
+    });
+    proc.on('error', reject);
+  });
 }
