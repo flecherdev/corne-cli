@@ -70,3 +70,19 @@ Cached with 1s TTL in `src/core/bootloader/detector.ts`.
 - `CHANGELOG.md` - Version history
 - `templates/` - Keymap templates (JSON)
 - `profiles/` - User keymap profiles (created at runtime)
+- `TEST_KEYBOARD.md` - Test hardware specifications
+
+## Test Hardware
+
+- **Keyboard**: Corne (crkbd) - 42 keys, split 3x6_3
+- **MCU**: RP2040 (RP2040 Zero compatible)
+- **Key conversion**: MUST use `CONVERT_TO=promicro_rp2040` (NOT `rp2040_ce`)
+- **Bootloader volume**: RPI-RP2 (appears when in bootloader mode)
+- **Layout macro**: `LAYOUT_split_3x6_3`
+
+## Troubleshooting
+
+If keyboard flashes but USB is not detected:
+- Check `CONVERT_TO` value - use `promicro_rp2040` not `rp2040_ce`
+- Verify bootloader is working (RPI-RP2 volume appears in Finder)
+- Run `corne-cli device:info` to check USB detection
