@@ -1,6 +1,6 @@
 // Bootloader detector tests
 
-import { BootloaderDetector } from '../../../src/core/bootloader/detector';
+import { BootloaderDetector, clearDeviceCache } from '../../../src/core/bootloader/detector';
 import { matchBootloader, isCorneKeyboard } from '../../../src/core/bootloader/constants';
 import { setMockDevices, clearMockDevices, MOCK_DEVICES } from '../../mocks/usb-device.mock';
 
@@ -18,10 +18,12 @@ describe('BootloaderDetector', () => {
   beforeEach(() => {
     detector = new BootloaderDetector();
     clearMockDevices();
+    clearDeviceCache();
   });
 
   afterEach(() => {
     clearMockDevices();
+    clearDeviceCache();
   });
 
   describe('detect', () => {

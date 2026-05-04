@@ -2,8 +2,10 @@
 
 import { Command } from 'commander';
 import chalk from 'chalk';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import fs from 'fs/promises';
+import ora from 'ora';
 import { deviceInfoCommand, waitForBootloaderCommand } from './commands/device';
 import { registerKeymapCommands } from './commands/keymap';
 import { registerOLEDCommands } from './commands/oled';
@@ -11,6 +13,8 @@ import { flashCommand } from './commands/flash';
 import { registerSetupCommand } from './commands/setup';
 import { registerTemplateCommands } from './commands/templates';
 import macosSetupCommand from './commands/macos';
+import { ProfileManager } from './core/keymap/manager';
+import { keymapGenerator } from './core/keymap/generator';
 
 // Read version from package.json
 const packageJson = JSON.parse(
@@ -51,13 +55,45 @@ program
 // Compile command
 program
   .command('compile')
-  .description('Compile firmware from current configuration')
-  .option('-p, --profile <name>', 'Use specific keymap profile')
-  .option('-o, --output <path>', 'Output path for compiled firmware')
+  .description('Compile keymap to QMK C code')
+  .option('-k, --keymap <name>', 'Keymap profile name to compile')
+  .option('-o, --output <path>', 'Output path for generated C code')
+  .option('-b, --keyboard <name>', 'Keyboard name (crkbd, lily58, etc.)', 'crkbd')
   .action(async (options) => {
-    console.log(chalk.yellow('⚠️  Compile command not yet implemented'));
-    console.log(chalk.cyan('Options:'), options);
-    console.log(chalk.gray('Use @qmk-firmware agent to implement this feature'));
+    const { keymap: keymapName, output, keyboard } = options;
+
+    if (!keymapName) {
+      console.log(chalk.red('✗ Error: --keymap is required'));
+      console.log(chalk.gray('Usage: corne-cli compile --keymap <profile-name> [--output keymap.c] [--keyboard crkbd]'));
+      process.exit(1);
+    }
+
+    const spinner = ora('Loading keymap...').start();
+    const pm = new ProfileManager();
+
+    try {
+      const exists = await pm.exists(keymapName);
+      if (!exists) {
+        spinner.fail(chalk.red(`Keymap "${keymapName}" not found`));
+        console.log(chalk.gray('Use "corne-cli keymap:list" to see available keymaps'));
+        process.exit(1);
+      }
+
+      const keymap = await pm.load(keymapName);
+      spinner.succeed(chalk.green(`Loaded keymap "${keymapName}"`));
+
+      const outputPath = output || `./${keymapName}.c`;
+      const code = keymapGenerator.generate(keymap, { keyboard });
+
+      await fs.writeFile(outputPath, code);
+      console.log(chalk.green(`✓ Compiled to ${outputPath}`));
+      console.log(chalk.gray(`Keyboard: ${keyboard}`));
+      console.log(chalk.gray(`Layers: ${keymap.layers.length}`));
+    } catch (error) {
+      spinner.fail(chalk.red('Compilation failed'));
+      console.error(chalk.red((error as Error).message));
+      process.exit(1);
+    }
   });
 
 // Config command
@@ -117,10 +153,11 @@ program.exitOverride();
 
 try {
   program.parse();
-} catch (error: any) {
-  if (error.code === 'commander.help') {
+} catch (error) {
+  const err = error as { code?: string; message?: string };
+  if (err.code === 'commander.help') {
     process.exit(0);
   }
-  console.error(chalk.red(`\n✗ ${error.message}\n`));
+  console.error(chalk.red(`\n✗ ${err.message}\n`));
   process.exit(1);
 }

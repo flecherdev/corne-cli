@@ -107,3 +107,12 @@ export interface ValidationResult {
   errors: string[];
   warnings: string[];
 }
+
+export interface DetectedBootloader {
+  type: BootloaderType;
+  vid: string;
+  pid: string;
+  port?: string;
+  manufacturer?: string;
+  product?: string;
+}

@@ -134,7 +134,6 @@ export class OLEDImageConverter {
       for (let i = 0; i < bytes.length; i += bytesPerLine) {
         const chunk = bytes.slice(i, i + bytesPerLine);
         const formatted = chunk.map(b => `0x${b.toString(16).padStart(2, '0')}`).join(', ');
-        const isLast = i + bytesPerLine >= bytes.length && frameIndex === frames.length - 1;
         lines.push(`        ${formatted}${i + bytesPerLine < bytes.length ? ',' : ''}`);
       }
       

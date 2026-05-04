@@ -190,7 +190,7 @@ export async function editKeymapCommand(name: string): Promise<void> {
           keymap.config.oledConfig = await promptOLEDConfig(keymap.config.oledConfig);
           break;
 
-        case 'description':
+        case 'description': {
           const { description } = await inquirer.prompt([
             {
               type: 'input',
@@ -201,8 +201,9 @@ export async function editKeymapCommand(name: string): Promise<void> {
           ]);
           keymap.description = description;
           break;
+        }
 
-        case 'settings':
+        case 'settings': {
           if (!keymap.config) {
             keymap.config = { tappingTerm: 200, permissiveHold: true };
           }
@@ -223,13 +224,15 @@ export async function editKeymapCommand(name: string): Promise<void> {
           keymap.config.tappingTerm = settings.tappingTerm;
           keymap.config.permissiveHold = settings.permissiveHold;
           break;
+        }
 
-        case 'save':
+        case 'save': {
           const saveSpinner = ora('Saving keymap...').start();
           await profileManager.save(keymap);
           saveSpinner.succeed(chalk.green('Keymap saved successfully'));
           editing = false;
           break;
+        }
 
         case 'cancel':
           console.log(chalk.yellow('Changes discarded.'));

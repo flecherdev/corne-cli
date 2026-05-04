@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.4] - 2026-04-25
+
+### ✨ Added - Compile Command
+
+#### New Features
+- **Compile command** - Convert keymap profiles to QMK C code directly
+  - `corne-cli compile --keymap <name> [--output keymap.c] [--keyboard crkbd]`
+  - Supports profiles from `./profiles` directory
+  - Generates ready-to-compile keymap.c
+
+### 🔧 Technical Improvements
+
+#### Performance
+- **Lazy loading** for heavy dependencies (`sharp`, `node-hid`)
+- **Caching** for bootloader detection (1s TTL)
+
+#### Code Quality
+- **TypeScript strict** enabled, better type safety
+- **Reduced lint errors** from 32 to 19
+
+### 📖 Migration Guide
+```bash
+# Create a keymap profile first
+corne-cli keymap:create my-layout --template qwerty
+
+# Compile to QMK C code
+corne-cli compile --keymap my-layout --output keymap.c
+```
+
 ## [0.4.3] - 2026-04-03
 
 ### 🔧 Fixed - OLED Animation Improvements

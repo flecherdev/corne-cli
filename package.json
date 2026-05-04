@@ -1,6 +1,6 @@
 {
   "name": "corne-cli",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "CLI tool for customizing Corne keyboards with QMK firmware - Convert GIFs to OLED animations with WPM support and configurable rotation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,11 +13,13 @@
     "build:watch": "cross-env NODE_OPTIONS='--no-inspect' tsc --watch",
     "dev": "tsx src/cli.ts",
     "start": "node dist/cli.js",
+    "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src tests --ext .ts",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "check": "npm run typecheck && npm run lint",
     "prepublishOnly": "cross-env NODE_OPTIONS='--no-inspect' npm run build"
   },
   "keywords": [

@@ -2,8 +2,6 @@
 
 export * from './types';
 
-// Re-export core modules when implemented
+// TODO: Enable core module exports when fully implemented
 // export * from './core/bootloader';
-// export * from './core/compiler';
 // export * from './core/keymap';
-// export * from './core/config';

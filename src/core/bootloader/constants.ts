@@ -97,7 +97,7 @@ export const BOOTLOADER_TOOLS: Record<BootloaderType, string> = {
  * Check if a VID/PID combination matches a known bootloader
  */
 export function matchBootloader(vid: number, pid: number): BootloaderInfo | null {
-  for (const [key, device] of Object.entries(BOOTLOADER_DEVICES)) {
+  for (const device of Object.values(BOOTLOADER_DEVICES)) {
     if (device.vid === vid && device.pid === pid) {
       return {
         type: device.type,

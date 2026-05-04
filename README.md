@@ -250,14 +250,11 @@ corne-cli flash firmware.hex
 # Create a new keymap profile
 corne-cli keymap:create my-layout --template qwerty
 
-# Compile firmware
-corne-cli compile --profile my-layout
+# Compile keymap to QMK C code
+corne-cli compile --keymap my-layout --keyboard crkbd
 
 # Generate OLED animation from GIF
 corne-cli oled generate animation.gif --size 128x32
-
-# Backup current configuration
-corne-cli backup --name my-backup
 
 # List saved profiles
 corne-cli keymap:list
@@ -408,14 +405,24 @@ corne-cli keymap:delete <name>
 
 ### Compile
 
-Compile firmware from configuration:
+Compile a keymap profile to QMK C code:
 
 ```bash
-corne-cli compile [options]
+corne-cli compile --keymap <name> [options]
 
 Options:
-  -p, --profile <name>     Use specific keymap profile
-  -o, --output <path>      Output path for compiled firmware
+  -k, --keymap <name>   Keymap profile name (required)
+  -o, --output <path>   Output path for C code (default: <name>.c)
+  -b, --keyboard <name>  Keyboard name (default: crkbd)
+```
+
+Example:
+```bash
+# Compile keymap to C code
+corne-cli compile --keymap my-layout --keyboard crkbd --output keymap.c
+
+# List keymaps first
+corne-cli keymap:list
 ```
 
 ### Config

@@ -159,8 +159,8 @@ export async function flashCommand(firmwarePath: string | undefined, options: Fl
 async function flashFirmware(
   bootloaderType: BootloaderType,
   firmwarePath: string,
-  bootloader: any,
-  options: FlashOptions
+  bootloader: unknown,
+  _options: FlashOptions
 ): Promise<void> {
   const tool = getBootloaderTool(bootloaderType);
   
@@ -219,30 +219,24 @@ async function flashFirmware(
   }
 }
 
-async function flashWithDfuUtil(firmwarePath: string, bootloader: any): Promise<void> {
+async function flashWithDfuUtil(firmwarePath: string, _bootloader: unknown): Promise<void> {
   return executeFlashCommand('dfu-util', [
-    '-d', `${bootloader.vid}:${bootloader.pid}`,
+    '-d', `${(_bootloader as { vid: string; pid: string }).vid}:${(_bootloader as { vid: string; pid: string }).pid}`,
     '-a', '0',
     '-s', '0x08000000:leave',
     '-D', firmwarePath
   ]);
 }
 
-async function flashWithDfuProgrammer(firmwarePath: string, bootloader: any): Promise<void> {
-  // dfu-programmer requires MCU name, commonly atmega32u4 for keyboards
+async function flashWithDfuProgrammer(firmwarePath: string, _bootloader: unknown): Promise<void> {
   const mcu = 'atmega32u4';
   
-  // Erase
   await executeFlashCommand('dfu-programmer', [mcu, 'erase']);
-  
-  // Flash
   await executeFlashCommand('dfu-programmer', [mcu, 'flash', firmwarePath]);
-  
-  // Reset
   await executeFlashCommand('dfu-programmer', [mcu, 'reset']);
 }
 
-async function flashWithAvrdude(firmwarePath: string, bootloader: any): Promise<void> {
+async function flashWithAvrdude(firmwarePath: string, _bootloader: unknown): Promise<void> {
   // Find the serial port (Caterina bootloader appears as COM port)
   const port = await findCaterinaPort();
   

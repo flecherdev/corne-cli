@@ -41,7 +41,7 @@ export class WPMAnimationGenerator {
   /**
    * Generate complete QMK C code for WPM animations
    */
-  generateQMKCode(animationSet: WPMAnimationSet, name: string = 'wpm_animation'): string {
+  generateQMKCode(animationSet: WPMAnimationSet, animationName: string = 'wpm_animation'): string {
     const lines: string[] = [];
 
     // Header comments
@@ -148,12 +148,12 @@ export class WPMAnimationGenerator {
   /**
    * Generate animation frame data
    */
-  private generateAnimationFrames(frames: Buffer[], frameDelay: number, name: string): string {
+  private generateAnimationFrames(frames: Buffer[], frameDelay: number, animationName: string): string {
     const lines: string[] = [];
-    const frameSize = (this.width * this.height) / 8;
+    const _frameSize = (this.width * this.height) / 8;
 
-    lines.push(`// ${name} - ${frames.length} frames @ ${frameDelay}ms`);
-    lines.push(`static const char PROGMEM ${name}[${frames.length}][OLED_SIZE] = {`);
+    lines.push(`// ${animationName} - ${frames.length} frames @ ${frameDelay}ms`);
+    lines.push(`static const char PROGMEM ${animationName}[${frames.length}][OLED_SIZE] = {`);
 
     frames.forEach((frameBuffer, frameIndex) => {
       const bytes: number[] = [];

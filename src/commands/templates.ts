@@ -57,14 +57,14 @@ function applyVariables(str: string, vars: Record<string, string>): string {
 }
 
 export async function listTemplatesCommand(): Promise<void> {
-  const templatesDir = path.join(__dirname, '../../templates');
   try {
-    const files = await fs.readdir(templatesDir);
+    const files = await fs.readdir(path.join(__dirname, '../../templates'));
     const templates = files.filter(f => f.endsWith('.json')).map(f => f.replace('.json', ''));
 
     console.log('\n' + boxen(chalk.cyan.bold('Available Templates') + '\n\n' + templates.join('\n'), { padding: 1 }));
-  } catch (err: any) {
-    console.error(chalk.red('Failed to list templates:'), err.message || err);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(chalk.red('Failed to list templates:'), message);
   }
 }
 
@@ -104,12 +104,7 @@ export async function applyTemplateCommand(name: string, options: { target?: str
     // Optionally generate files in target
     const target = options.target || process.cwd();
 
-    // If target looks like a qmk_firmware root, require keyboardPath to avoid accidental writes
-    let keyboardPath = options.target ? '' : '';
-    if (target.includes('qmk_firmware')) {
-      // try to detect common keyboards folder
-      keyboardPath = 'keyboards/crkbd/keymaps';
-    }
+    // If target looks like a qmk_firmware root, avoid accidental writes
 
     const dest = path.join(target, name);
     // If dest exists and non-empty, ask before overwriting
@@ -227,11 +222,12 @@ export async function syncTemplates(repo: string): Promise<void> {
       await fs.copyFile(src, dest);
       console.log(chalk.green(`Synced template: ${f}`));
     }
-  } catch (err: any) {
-    console.error(chalk.red('Failed to sync templates:'), err.message || err);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(chalk.red('Failed to sync templates:'), message);
   } finally {
     // cleanup tmpDir
-    try { await fs.rm(tmpDir, { recursive: true, force: true }); } catch {}
+    try { await fs.rm(tmpDir, { recursive: true, force: true }); } catch { /* ignore cleanup errors */ }
   }
 }
 

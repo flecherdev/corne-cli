@@ -4,10 +4,18 @@ import inquirer from 'inquirer';
 import ora from 'ora';
 import fs from 'fs/promises';
 import path from 'path';
-import sharp from 'sharp';
-import { OLEDImageConverter, WPMAnimationGenerator, WPMConfig, DEFAULT_WPM_CONFIG, WPMAnimationSet, LayerAnimationGenerator, LayerAnimationConfig, LayerAnimationSet, LayerDefinition, DEFAULT_LAYER_NAMES } from '../core/keymap';
+import { OLEDImageConverter, WPMAnimationGenerator, WPMConfig, DEFAULT_WPM_CONFIG, WPMAnimationSet, LayerAnimationGenerator, LayerAnimationSet, LayerDefinition, DEFAULT_LAYER_NAMES } from '../core/keymap';
 import { BootloaderDetector } from '../core/bootloader';
 import boxen from 'boxen';
+
+let sharpModule: typeof import('sharp') | null = null;
+
+function getSharp(): typeof import('sharp') {
+  if (!sharpModule) {
+    sharpModule = require('sharp');
+  }
+  return sharpModule!;
+}
 
 interface FrameData {
   buffer: Buffer;
@@ -70,6 +78,7 @@ export async function detectOLEDSizeCommand(): Promise<void> {
  */
 async function isAnimatedGif(imagePath: string): Promise<boolean> {
   try {
+    const sharp = getSharp();
     const metadata = await sharp(imagePath).metadata();
     return metadata.format === 'gif' && (metadata.pages || 1) > 1;
   } catch {
@@ -86,6 +95,7 @@ async function extractGifFrames(
   height: number,
   rotate: number = 0
 ): Promise<FrameData[]> {
+  const sharp = getSharp();
   const metadata = await sharp(imagePath).metadata();
   const frameCount = metadata.pages || 1;
   const delay = (metadata.delay || [100])[0]; // Default 100ms per frame
@@ -93,6 +103,7 @@ async function extractGifFrames(
   const frames: FrameData[] = [];
 
   for (let i = 0; i < frameCount; i++) {
+    const sharp = getSharp();
     let pipeline = sharp(imagePath, { page: i });
     
     // Apply rotation if specified
@@ -208,7 +219,7 @@ export async function generateOLEDImageCommand(
     } else {
       // Static image processing (original code)
       spinner.text = 'Processing static image...';
-      
+      const sharp = getSharp();
       let pipeline = sharp(imagePath);
       
       // Apply rotation if specified
@@ -408,7 +419,7 @@ export async function oledWizardCommand(): Promise<void> {
   ]);
 
   switch (action) {
-    case 'image':
+    case 'image': {
       const { imagePath, side, output } = await inquirer.prompt([
         {
           type: 'input',
@@ -434,6 +445,7 @@ export async function oledWizardCommand(): Promise<void> {
       ]);
       await generateOLEDImageCommand(imagePath, { side, output, preview: true });
       break;
+    }
 
     case 'text':
       await generateOLEDTextCommand();

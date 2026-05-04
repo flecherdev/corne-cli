@@ -1,8 +1,25 @@
 // Bootloader detector implementation
 
-import { devices as getHIDDevices } from 'node-hid';
+import type { Device } from 'node-hid';
 import { BootloaderInfo } from '../../types';
 import { matchBootloader, isCorneKeyboard, getBootloaderName, getKeyboardModel, KeyboardModel } from './constants';
+
+let deviceCache: { timestamp: number; devices: Device[] } | null = null;
+const CACHE_TTL = 1000;
+
+function getDevices(): Device[] {
+  if (deviceCache && Date.now() - deviceCache.timestamp < CACHE_TTL) {
+    return deviceCache.devices;
+  }
+  const { devices: getHIDDevices } = require('node-hid');
+  const hidDevices = getHIDDevices();
+  deviceCache = { timestamp: Date.now(), devices: hidDevices };
+  return hidDevices;
+}
+
+export function clearDeviceCache(): void {
+  deviceCache = null;
+}
 
 export interface DetectedDevice {
   bootloader?: BootloaderInfo;
@@ -20,7 +37,7 @@ export class BootloaderDetector {
    */
   async detect(): Promise<BootloaderInfo | null> {
     try {
-      const devices = getHIDDevices();
+      const devices = getDevices();
 
       for (const device of devices) {
         if (device.vendorId === undefined || device.productId === undefined) continue;
@@ -44,7 +61,7 @@ export class BootloaderDetector {
    */
   async listDevices(): Promise<DetectedDevice[]> {
     try {
-      const devices = getHIDDevices();
+      const devices = getDevices();
       const detected: DetectedDevice[] = [];
       const seen = new Set<string>();
 
@@ -116,7 +133,7 @@ export class BootloaderDetector {
    */
   async detectCorneKeyboard(): Promise<boolean> {
     try {
-      const devices = getHIDDevices();
+      const devices = getDevices();
 
       for (const device of devices) {
         if (device.vendorId === undefined || device.productId === undefined) continue;
@@ -137,7 +154,7 @@ export class BootloaderDetector {
    */
   async detectKeyboardModel(): Promise<KeyboardModel | null> {
     try {
-      const devices = getHIDDevices();
+      const devices = getDevices();
 
       for (const device of devices) {
         if (device.vendorId === undefined || device.productId === undefined) continue;

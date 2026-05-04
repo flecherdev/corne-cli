@@ -1,4 +1,3 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
 import { exec as cpExec } from 'child_process';
 import { promisify } from 'util';
@@ -10,11 +9,10 @@ export async function macosSetupCommand(autoYes = false): Promise<void> {
   console.log(chalk.bold('macOS QMK setup helper'));
   console.log('This command detects Homebrew and provides next-step instructions.');
 
-  // small helper to centralize confirmations and allow `--yes`
-  async function confirm(message: string, def = false) {
+  async function confirm(message: string, def = false): Promise<boolean> {
     if (autoYes) return true;
     const r = await inquirer.prompt([{ type: 'confirm', name: 'ok', message, default: def }]);
-    return Boolean((r as any).ok);
+    return Boolean((r as { ok: boolean }).ok);
   }
 
   // Check for Homebrew
@@ -25,13 +23,6 @@ export async function macosSetupCommand(autoYes = false): Promise<void> {
     console.log(`- Ensure Xcode command line tools are installed: ${chalk.cyan('xcode-select --install')}`);
     console.log(`- Install qmk dependencies: ${chalk.cyan('brew install qmk/qmk/qmk')}`);
     console.log(`- Follow official macOS QMK setup: ${chalk.cyan('docs/MACOS_QMK_SETUP.md')}`);
-
-    // small helper to centralize confirmations and allow `--yes`
-    async function confirm(message: string, def = false) {
-      if (autoYes) return true;
-      const r = await inquirer.prompt([{ type: 'confirm', name: 'ok', message, default: def }]);
-      return Boolean((r as any).ok);
-    }
 
     // Offer to install qmk via Homebrew (confirmation gated)
     try {
@@ -46,14 +37,15 @@ export async function macosSetupCommand(autoYes = false): Promise<void> {
             if (stdout) console.log(stdout.toString());
             if (stderr) console.error(stderr.toString());
             console.log(chalk.green('qmk installed (or already present).'));
-          } catch (err: any) {
-            console.error(chalk.red('Failed to run brew install:'), err.message || err);
+          } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            console.error(chalk.red('Failed to run brew install:'), message);
           }
         } else {
           console.log(chalk.yellow('Skipped installing qmk via Homebrew.'));
         }
       }
-    } catch (err) {
+    } catch {
       // prompt failure — continue
     }
   } catch (err) {
