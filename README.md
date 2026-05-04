@@ -1,585 +1,156 @@
-# 🎹 Corne CLI
+# Corne CLI
 
 > CLI tool for customizing Corne split keyboards with QMK firmware and animated OLED displays
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![npm version](https://img.shields.io/npm/v/corne-cli.svg)](https://www.npmjs.com/package/corne-cli)
-[![CI](https://github.com/flecherdev/corne-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/flecherdev/corne-cli/actions/workflows/ci.yml)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.2-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-18%2B-green.svg)](https://nodejs.org/)
-[![QMK](https://img.shields.io/badge/QMK-0.32+-blueviolet.svg)](https://qmk.fm/)
 
-## 🌟 Features
-
-### Core Features
-- 🔌 **Auto-detect bootloaders** - Supports 9+ bootloader types (DFU, Caterina, HalfKay, etc.)
-- ⚡ **Flash firmware** - Easy one-command flashing with RP2040 UF2 support
-- 🎨 **Manage keymaps** - Create, edit, and switch between keymap profiles
-- 🔨 **Compile QMK** - Integrated QMK firmware compilation
-- 💾 **Profile management** - Save and restore keyboard configurations
-- 🧪 **Interactive mode** - User-friendly prompts for all operations
-
-### OLED Features ⭐ NEW!
-- 🖼️ **Smart OLED Detection** - Auto-detects OLED size from connected keyboard
-- 🎬 **Animated GIF Support** - Convert GIFs to QMK animations with frame-by-frame control
-- ⌨️ **Real-Time Key Display** - See your keypresses live on OLED (50+ symbols supported)
-- 🎯 **Split Display** - Different content on each half (animation + key display)
-- 📊 **Layer Indicators** - Visual feedback for active layers
-- 📸 **Static Images** - Convert PNG/JPG to OLED format
-- 📝 **Custom Text** - Generate text displays for OLED
-- 🎨 **Templates** - Pre-made OLED configurations
-
-### Platform Support
-- 🪟 **Windows** - Full QMK MSYS integration, VS Code terminal setup
-- 🍎 **macOS** - Native toolchain support (coming soon)
-- 🐧 **Linux** - Full support with package managers
-- 🎮 **RP2040** - Native support for Raspberry Pi Pico-based controllers
-
-### Developer Tools
-- 💾 **Backup & Restore** - Automated configuration backups with PowerShell scripts
-- 🔧 **VS Code Integration** - Pre-configured terminal profiles
-- 📚 **Complete Documentation** - Step-by-step guides for everything
-- 🚀 **One-Command Setup** - Get started in minutes
-
-## 🎬 Animated OLED Support
-
-Transform your OLED displays with animated GIFs!
-
-### Real Example
-
-![Corne CLI - Kings and Pigs Mascot](examples/king.gif)
-
-*Mascot image from [Kings and Pigs](https://pixelfrog-assets.itch.io/kings-and-pigs) by Pixelfrog Assets*
-
-**What you can do:**
-- ✅ Convert any GIF to QMK animation (4-10 frames recommended)
-- ✅ **Dynamic WPM animations** that respond to your typing speed! 🆕
-- ✅ Display animations on OLED screens (128x32 or 128x64)
-- ✅ Show live keypress feedback on the other OLED
-- ✅ Optimized for smooth playback with no input lag
-- ✅ WPM counter with configurable thresholds
-- ✅ Configurable image rotation for different OLED orientations
-
-### Quick Setup
+## Install
 
 ```bash
-# 1. Place your GIF in examples/
-cp my-animation.gif examples/
-
-# 2. Create a new keymap
-cd ~/qmk_firmware
-qmk new-keymap -kb crkbd -km my_animation
-
-# 3. Copy generated files to your keymap
-cp examples/*.h ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/
-cp examples/keymap_example.c ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/keymap.c
-cp examples/config.h ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/
-cp examples/rules.mk ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/
-
-# 4. Compile for your controller
-qmk compile -kb crkbd/rev1 -km my_animation -e CONVERT_TO=promicro_rp2040
-
-# 5. Flash to keyboard (for RP2040)
-# Press reset button, copy the .uf2 file to RPI-RP2 drive
-# Repeat for both halves of split keyboard
-```
-
-### 🏃 WPM-Based Animations (New!)
-
-Create dynamic animations that respond to your typing speed!
-
-```bash
-# Generate WPM animation with interactive wizard
-corne-cli oled wpm
-
-# Provide 2-3 animations:
-# - Idle: slow/calm animation (< 20 WPM)
-# - Typing: active animation (20-60 WPM)
-# - Fast: intense animation (> 60 WPM) - optional
-
-# Generated files include:
-# - wpm_animation.h           (animation code with automatic switching)
-# - wpm_animation_rules.mk    (QMK rules configuration)
-# - wpm_animation_keymap.c    (usage example)
-```
-
-**What it does:**
-- Automatically switches animations based on typing speed
-- Shows WPM counter on secondary OLED
-- Configurable speed thresholds
-- Smooth transitions between states
-- No input lag or performance impact
-
-📖 [Complete WPM Animation Guide](docs/WPM_ANIMATIONS.md)
-
-### Generated Code Example
-
-```c
-// Generated animation header automatically includes:
-#define ANIM_FRAME_COUNT 4
-#define ANIM_FRAME_DURATION 400
-static const char PROGMEM custom_animation[4][512] = { /* 4 frames */ };
-
-// Ready-to-use keymap with:
-bool oled_task_user(void) {
-    if (is_keyboard_left()) {
-        // Left OLED: Shows last key pressed (AAAAAAA...)
-        render_key_log();
-    } else {
-        // Right OLED: Animated robot
-        if (timer_elapsed32(anim_timer) > ANIM_FRAME_DURATION) {
-            anim_timer = timer_read32();
-            oled_write_raw_P(custom_animation[current_frame], OLED_SIZE);
-            current_frame = (current_frame + 1) % ANIM_FRAME_COUNT;
-        }
-    }
-    return false;
-}
-```
-
-📚 **Documentation**:
-- [Complete User Guide](USER_GUIDE.md) - Step-by-step tutorial
-- [Animated GIF Documentation](docs/ANIMATED_GIF_SUPPORT.md) - Technical details
-- [Setup Guide](examples/SETUP_GUIDE.md) - Windows/QMK MSYS setup
-- [Backup & Restore](examples/BACKUP_RESTORE.md) - Safely backup configurations
-
-🗺️ [See the Project Roadmap](ROADMAP.md) for what's next!
-
-## 📋 Supported Bootloaders
-
-- **ARM DFU** (STM32, APM32, Kiibohd) via `dfu-util`
-- **RISC-V DFU** (GD32V) via `dfu-util`
-- **Atmel/LUFA/QMK DFU** via `dfu-programmer`
-- **Caterina** (Arduino, Pro Micro) via `avrdude`
-- **HalfKay** (Teensy, Ergodox EZ) via Teensy Loader CLI
-- **QMK HID** via `hid_bootloader_cli`
-- **WB32 DFU** via `wb32-dfu-updater_cli`
-- **BootloadHID** (Atmel, PS2AVRGB)
-- **Atmel SAM-BA** (Massdrop) via Massdrop Loader
-- **LUFA Mass Storage**
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-**Windows:**
-1. Install [QMK MSYS](https://msys.qmk.fm/) (required for QMK on Windows)
-2. Install [VS Code](https://code.visualstudio.com/) (recommended)
-3. Run `qmk setup` in QMK MSYS terminal
-
-**macOS/Linux:**
-```bash
-python3 -m pip install --user qmk
-qmk setup
-```
-
-### Installation
-
-```bash
-# Install globally from npm
 npm install -g corne-cli
 
-# Or use with npx (no installation required)
+# Or use without installing
 npx corne-cli --help
-
-# Or clone and build from source
-git clone https://github.com/flecherdev/corne-cli.git
-cd corne-cli
-npm install
-npm run build
 ```
 
-### Your First Animated OLED
+## Commands
 
-### Interactive Setup Wizard
-
-If you want a guided first-time experience that creates a profile and example keymap files, run:
+### Keymap Management
 
 ```bash
-corne-cli setup
-```
-
-### macOS helper
-
-If you're on macOS, Corne CLI can help detect Homebrew and optionally install QMK via Homebrew.
-
-Usage:
-
-```bash
-# Interactive (will prompt):
-corne-cli system:macos-setup
-
-# Auto-confirm prompts (non-interactive / scripts):
-corne-cli system:macos-setup --yes
-```
-
-Notes:
-- The `--yes` flag will auto-confirm prompts and may run `brew install qmk/qmk/qmk` or the Homebrew installer when necessary. Use carefully in CI or unattended scripts.
-
-The wizard will detect connected devices, check for the `qmk` CLI and a `qmk_firmware` folder, let you choose a template, save a profile to `./profiles`, and optionally generate example `keymap.c`, `config.h`, and `rules.mk` files for immediate compilation.
-
-### Templates CLI
-
-Commands to manage and install templates:
-
-```bash
-corne-cli templates:list       # show local templates
-corne-cli templates:apply NAME --target ./out  # save profile and generate files
-corne-cli templates:sync GIT_REPO            # download templates from a repo
-corne-cli templates:install NAME --keyboard crkbd  # install directly into qmk_firmware
-```
-
-`templates:install` will try to auto-detect your `qmk_firmware` installation if you don't pass `--qmk-home`, and will prompt to choose a keyboard if multiple are present.
-
-
-Complete walkthrough in [USER_GUIDE.md](USER_GUIDE.md), here's the TL;DR:
-
-1. **Get a GIF** - 128x32px recommended, 4-10 frames
-2. **Create keymap** - `qmk new-keymap -kb crkbd -km my_anim`
-3. **Copy files** - Animation header + example keymap
-4. **Compile** - `qmk compile -kb crkbd/rev1 -km my_anim -e CONVERT_TO=promicro_rp2040`
-5. **Flash** - Reset button → copy `.uf2` to RPI-RP2 drive
-6. **Enjoy!** 🎉
-
-### Basic CLI Usage
-
-```bash
-# Flash firmware to keyboard
-corne-cli flash firmware.hex
-
-# Create a new keymap profile
+# Create new keymap profile
 corne-cli keymap:create my-layout --template qwerty
 
-# Compile keymap to QMK C code
-corne-cli compile --keymap my-layout --keyboard crkbd
-
-# Generate OLED animation from GIF
-corne-cli oled generate animation.gif --size 128x32
-
-# List saved profiles
+# List all profiles
 corne-cli keymap:list
+
+# Edit existing keymap
+corne-cli keymap:edit my-layout
+
+# Delete keymap
+corne-cli keymap:delete my-layout
+
+# Compile keymap to QMK C code
+corne-cli compile --keymap my-layout --keyboard crkbd --output keymap.c
 ```
 
-## 📖 Documentation
-
-### Getting Started
-- 📘 [User Guide](USER_GUIDE.md) - **START HERE** - Complete walkthrough
-- 🚀 [Getting Started](GETTING_STARTED.md) - Setup and initialization
-- 🗺️ [Project Roadmap](ROADMAP.md) - Features and progress
-
-### OLED & Animations
-- 🎬 [Animated GIF Support](docs/ANIMATED_GIF_SUPPORT.md) - Technical details
-- 🎨 [Animation Examples](docs/ANIMATION_EXAMPLES.md) - Code samples
-- 📺 [OLED Detection](docs/OLED_DETECTION.md) - Auto-detection system
-- ⚡ [Quick Start (Animated)](docs/QUICKSTART_ANIMATED.md) - Fast setup
-
-### Platform-Specific
-- 🪟 [Windows Installation](examples/WINDOWS_INSTALL.md) - QMK MSYS setup
-- 💻 [VS Code Terminal](examples/VSCODE_TERMINAL.md) - Terminal integration
-- 📝 [Setup Guide](examples/SETUP_GUIDE.md) - Step-by-step compilation guide
-
-### Operations
-- 💾 [Backup & Restore](examples/BACKUP_RESTORE.md) - Configuration safety
-- 🔧 [Bootloader Detection](BOOTLOADER_DETECTION.md) - Supported bootloaders
-
-### Development
-- 🤖 [GitHub Copilot Agents](.github/agents/README.md) - AI-assisted development
-- 📋 [Project Instructions](.github/copilot-instructions.md) - Development guidelines
-
-## 🛠️ Development
-
-### Prerequisites
-
-- Node.js 18+
-- TypeScript 5.2+
-- QMK CLI (optional, for firmware compilation)
-- Bootloader tools (installed automatically or manually)
-
-### Setup
+### OLED (No QMK Required!)
 
 ```bash
-# Clone the repository
-git clone https://github.com/flecherdev/corne-cli.git
-cd corne-cli
+# Convert image/GIF to OLED C code
+corne-cli oled generate animation.gif --output oled_animation.h
 
-# Install dependencies
-npm install
+# Options:
+#   -s, --side <left|right|both>  Display side (default: both)
+#   -o, --output <path>           Output file
+#   -p, --preview                 Show ASCII preview
+#   -w, --width <pixels>          OLED width (default: 128)
+#   -t, --height <pixels>         OLED height (default: 32)
+#   -r, --rotate <degrees>        Rotation (0, 90, 180, 270)
 
-# Build the project
-npm run build
+# Generate custom text for OLED
+corne-cli oled text
 
-# Run in development mode
-npm run dev -- --help
+# WPM-based animations (responds to typing speed)
+corne-cli oled wpm
 
-# Run tests
-npm test
+# Detect OLED size from keyboard
+corne-cli oled detect
+
+# List OLED templates
+corne-cli oled templates
 ```
 
-### Project Structure
-
-```
-corne-cli/
-├── .github/
-│   ├── copilot-instructions.md    # Project-wide AI instructions
-│   └── agents/                    # Specialized Copilot agents
-│       ├── qmk-firmware.agent.md
-│       ├── flasher.agent.md
-│       ├── keymap-manager.agent.md
-│       ├── cli-dev.agent.md
-│       └── testing.agent.md
-├── src/
-│   ├── commands/                  # CLI command implementations
-│   ├── core/                      # Core functionality
-│   │   ├── bootloader/            # Bootloader detection & flashing
-│   │   ├── compiler/              # QMK firmware compilation
-│   │   ├── keymap/                # Keymap management
-│   │   └── config/                # Configuration management
-│   ├── ui/                        # Terminal UI components
-│   ├── utils/                     # Shared utilities
-│   └── types/                     # TypeScript type definitions
-├── tests/                         # Test suites
-├── templates/                     # Keymap templates
-└── profiles/                      # User keymap profiles
-```
-
-## 🎯 AI-Assisted Development
-
-This project includes specialized GitHub Copilot agents to accelerate development:
-
-- **@qmk-firmware** - QMK compilation and firmware configuration
-- **@flasher** - Bootloader detection and firmware flashing
-- **@keymap-manager** - Keymap layout and profile management
-- **@cli-dev** - CLI structure and user interaction
-- **@testing** - Test writing and hardware mocking
-
-See [.github/agents/README.md](./.github/agents/README.md) for detailed usage.
-
-## 📦 Commands
-
-### Flash
-
-Flash firmware to your connected keyboard:
+### Flash Firmware
 
 ```bash
 # Flash firmware
 corne-cli flash firmware.hex
 
-# Flash with specific bootloader
-corne-cli flash firmware.bin --bootloader dfu
-
-# Flash .uf2 file (for RP2040/mass storage)
-corne-cli flash firmware.uf2
-
-Options:
-  -b, --bootloader <type>   Force specific bootloader type
-  --no-verify              Skip verification after flashing
-  --wait-timeout <ms>      Bootloader wait timeout (default: 30000)
+# With specific bootloader
+corne-cli flash firmware.uf2 --bootloader mass-storage
 ```
 
-**Supported bootloaders:**
-- ARM/RISC-V DFU (via `dfu-util`)
-- Atmel/LUFA/QMK DFU (via `dfu-programmer`)
-- Caterina (Arduino, Pro Micro) (via `avrdude`)
-- HalfKay (Teensy) (via `teensy_loader_cli`)
-- QMK HID (via `hid_bootloader_cli`)
-- Mass Storage/UF2 (RP2040) - Manual copy
-
-### Keymap
-
-Manage keyboard layouts:
+### Device
 
 ```bash
-# List all profiles
-corne-cli keymap:list
+# List connected devices
+corne-cli device:info
 
-# Create new profile
-corne-cli keymap:create <name> [options]
-  -t, --template <name>    Use template (qwerty, dvorak, colemak)
-
-# Edit existing profile
-corne-cli keymap:edit <name>
-
-# Delete profile
-corne-cli keymap:delete <name>
+# Wait for bootloader
+corne-cli device:wait
 ```
 
-### Compile
-
-Compile a keymap profile to QMK C code:
+### Templates
 
 ```bash
-corne-cli compile --keymap <name> [options]
+# List templates
+corne-cli templates:list
 
-Options:
-  -k, --keymap <name>   Keymap profile name (required)
-  -o, --output <path>   Output path for C code (default: <name>.c)
-  -b, --keyboard <name>  Keyboard name (default: crkbd)
+# Apply template
+corne-cli templates:apply qwerty --target ./output
+
+# Install into QMK firmware
+corne-cli templates:install qwerty --keyboard crkbd
 ```
 
-Example:
-```bash
-# Compile keymap to C code
-corne-cli compile --keymap my-layout --keyboard crkbd --output keymap.c
-
-# List keymaps first
-corne-cli keymap:list
-```
-
-### Config
-
-Manage CLI configuration:
+### macOS Setup
 
 ```bash
-# Show current configuration
-corne-cli config
-
-# Set configuration value
-corne-cli config:set <key> <value>
+corne-cli system:macos-setup --yes
 ```
 
-## 🔧 Configuration
+## Example: Animated OLED
 
-The CLI stores configuration in your system's config directory:
+```bash
+# 1. Convert your GIF to OLED C code (no QMK needed!)
+corne-cli oled generate my-animation.gif -o oled_animation.h
 
-- **Windows**: `%APPDATA%\corne-cli\config.json`
-- **macOS**: `~/Library/Preferences/corne-cli/config.json`
-- **Linux**: `~/.config/corne-cli/config.json`
+# 2. Use in your keymap.c:
+#include "oled_animation.h"
 
-### Configuration Options
-
-```json
-{
-  "qmkHome": "/path/to/qmk_firmware",
-  "defaultProfile": "my-layout",
-  "autoDetectBootloader": true,
-  "verifyAfterFlash": true
+bool oled_task_user(void) {
+    // Render animation on right OLED
+    oled_write_raw_P(animation_frames[frame_index], OLED_SIZE);
+    return false;
 }
 ```
 
-## 🧪 Testing
+## Project Structure
 
-```bash
-# Run all tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Generate coverage report
-npm run test:coverage
+```
+corne-cli/
+├── src/
+│   ├── cli.ts              # Main entry
+│   ├── commands/           # CLI commands
+│   │   ├── flash.ts        # Firmware flashing
+│   │   ├── keymap.ts       # Keymap CRUD
+│   │   ├── oled.ts         # OLED generation
+│   │   └── templates.ts    # Template management
+│   └── core/
+│       ├── bootloader/      # Bootloader detection
+│       └── keymap/         # Keymap processing
+├── templates/               # Keymap templates (JSON)
+└── profiles/               # User keymaps (runtime)
 ```
 
-## 🤝 Contributing
+## Development
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) first.
+```bash
+# Build
+npm run build
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+# Test
+npm test
 
-## 📝 License
+# Lint
+npm run lint
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# Format
+npm run format
+```
 
-## 🙏 Acknowledgments
+## License
 
-- [QMK Firmware](https://qmk.fm/) - The keyboard firmware
-- [Corne Keyboard](https://github.com/foostan/crkbd) - The keyboard hardware
-- [Commander.js](https://github.com/tj/commander.js) - CLI framework
-- All the bootloader tool maintainers
-
-## ✅ What's Completed (v0.2.0)
-
-### Major Features
-- 🎬 **Animated GIF Support** - Full pipeline from GIF to working OLED animation
-- ⌨️ **Real-Time Key Display** - Live keystroke visualization (50+ symbols)
-- 🎮 **RP2040 Support** - Native UF2 bootloader flashing
-- 🔥 **Firmware Flash** - Complete flashing support for 6+ bootloader types
-- 💾 **Backup System** - Automated configuration backups
-- 🔧 **VS Code Integration** - QMK MSYS terminal setup
-- 📚 **Complete Documentation** - 2,000+ lines of guides
-
-### Tested & Working
-- ✅ Corne keyboard (crkbd) with RP2040
-- ✅ 128x32 OLED displays (SSD1306)
-- ✅ QMK Firmware 0.32.7
-- ✅ Windows 10/11 with QMK MSYS
-- ✅ Split keyboard independent displays
-- ✅ No input lag or performance issues
-
-**See [FEATURES.md](FEATURES.md) for detailed breakdown**
-
-## 📊 Project Status
-
-| Category | Progress |
-|----------|----------|
-| Core Features | ████████████████████ 100% |
-| OLED Support | ████████████████████ 100% |
-| Documentation | ██████████████████░░ 90% |
-| Platform Support | ████████████████░░░░ 80% |
-| Community Tools | ████░░░░░░░░░░░░░░░░ 20% |
-
-**Overall:** ████████████████░░░░ **75%** Complete
-
-## 🗺️ Roadmap
-
-📖 **Full Roadmap:** [ROADMAP.md](ROADMAP.md)
-
-### Coming in v1.1
-- WPM-based animations
-- Interactive setup wizard
-- Layer-specific animations
-- Enhanced error handling
-
-### Future (v1.2+)
-- GUI mode with keyboard visualizer
-- Live keymap preview
-- Cloud profile sync
-- Support for more keyboards (Lily58, Sofle, etc.)
-- Firmware update notifications
-- Macro recorder
-- RGB animation designer
-
-## 📚 Additional Resources
-
-- 📘 [Complete User Guide](USER_GUIDE.md)
-- ✨ [Features Overview](FEATURES.md)
-- 📝 [Changelog](CHANGELOG.md) 
-- 🎬 [Animation Guide](docs/ANIMATED_GIF_SUPPORT.md)
-- 💾 [Backup Guide](examples/BACKUP_RESTORE.md)
-- 🪟 [Windows Setup](examples/WINDOWS_INSTALL.md)
-- 📦 [Publishing to npm](docs/PUBLISHING.md)
-
-## 📞 Support
-
-- 📫 Issues: [GitHub Issues](https://github.com/flecherdev/corne-cli/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/flecherdev/corne-cli/discussions)
-- 📖 Documentation: [Project Wiki](https://github.com/flecherdev/corne-cli/wiki)
-- 🤖 AI Agents: [Copilot Agents](.github/agents/README.md)
-
-## 🤝 Contributing
-
-We welcome contributions! Areas where help is needed:
-- Testing on different keyboard models (Lily58, Sofle, Kyria)
-- macOS and Linux support improvements
-- Community animation library
-- Documentation translations
-- Bug reports and feature requests
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## 🎨 Credits
-
-**Mascot Image**: The king character used in our project mascot is from the [Kings and Pigs](https://pixelfrog-assets.itch.io/kings-and-pigs) asset pack by [Pixelfrog Assets](https://pixelfrog-assets.itch.io/). Licensed for free use with attribution.
-
-## 📜 License
-
-MIT License - see [LICENSE](LICENSE) for details
-
----
-
-**Made with ❤️ for the mechanical keyboard community**
-
-*Successfully tested and deployed on Corne keyboard with RP2040 - April 2, 2026*
+MIT

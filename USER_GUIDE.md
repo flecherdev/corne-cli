@@ -1,604 +1,86 @@
-# 📖 Corne CLI - User Guide
+# Corne CLI - User Guide
 
-> Complete guide to customizing your Corne keyboard with animated OLEDs
-
-## Table of Contents
-- [Getting Started](#getting-started)
-- [OLED Animations](#oled-animations)
-- [Real-Time Key Display](#real-time-key-display)
-- [Backup & Restore](#backup--restore)
-- [Troubleshooting](#troubleshooting)
-- [Advanced Usage](#advanced-usage)
-
----
-
-## 🚀 Getting Started
-
-### What You Need
-- **Hardware**: Corne keyboard (or compatible split keyboard)
-- **Software**: 
-  - Windows: QMK MSYS (download from https://msys.qmk.fm/)
-  - VS Code (recommended for terminal integration)
-  - Git (comes with QMK MSYS on Windows)
-
-### First-Time Setup
-
-#### 1. Install QMK Environment
-
-**Windows:**
-```powershell
-# Download and install QMK MSYS from https://msys.qmk.fm/
-# Then in QMK MSYS terminal:
-qmk setup
-```
-
-**macOS/Linux:**
-```bash
-python3 -m pip install --user qmk
-qmk setup
-```
-
-#### macOS helper: `system:macos-setup`
-
-Corne CLI provides a helper command to detect Homebrew and guide macOS QMK setup. It can optionally run Homebrew/QMK install commands when confirmed.
-
-Usage:
+## Quick Start
 
 ```bash
-# Interactive prompts
-corne-cli system:macos-setup
+# Install
+npm install -g corne-cli
 
-# Auto-confirm prompts (use with caution)
-corne-cli system:macos-setup --yes
+# Create a keymap
+corne-cli keymap:create my-layout --template qwerty
+
+# Compile to QMK C
+corne-cli compile --keymap my-layout --output keymap.c
 ```
 
-The `--yes` flag auto-confirms prompts and is useful for automation; it may run `brew install qmk/qmk/qmk` or the Homebrew installer when necessary.
+## OLED (No QMK Required!)
 
+Generate OLED C code directly from Corne CLI - no QMK installation needed!
 
-#### 2. Configure VS Code (Optional but Recommended)
+```bash
+# Convert image/GIF
+corne-cli oled generate image.gif --output anim.h
 
-Add this to your `.vscode/settings.json`:
+# Generate text display
+corne-cli oled text
 
-```json
-{
-  "terminal.integrated.profiles.windows": {
-    "QMK MSYS": {
-      "path": "C:\\QMK_MSYS\\usr\\bin\\bash.exe",
-      "args": ["--login"],
-      "env": {
-        "MSYSTEM": "MINGW64",
-        "CHERE_INVOKING": "1"
-      }
-    }
-  },
-  "terminal.integrated.defaultProfile.windows": "QMK MSYS"
+# WPM-based animations
+corne-cli oled wpm
+
+# Detect OLED size from keyboard
+corne-cli oled detect
+```
+
+### Using Generated OLED Code
+
+```c
+// In your keymap.c
+#include "anim.h"
+
+bool oled_task_user(void) {
+    oled_write_raw_P(animation[frame], OLED_SIZE);
+    return false;
 }
 ```
 
-#### 3. Verify Installation
+## Keymap Profiles
 
 ```bash
-qmk --version
-# Should show: QMK CLI 1.2.0 or newer
+# Create from template
+corne-cli keymap:create my-layout --template qwerty
+
+# List profiles
+corne-cli keymap:list
+
+# Edit
+corne-cli keymap:edit my-layout
+
+# Compile
+corne-cli compile --keymap my-layout
 ```
 
----
-
-## ⚙️ Interactive Setup Wizard (`setup`)
-
-If you're new to QMK or want a guided way to create a keymap profile and example files, use the interactive setup wizard.
-
-What it does:
-- Detects connected USB devices and known Corne keyboards
-- Detects whether `qmk` CLI is available on your PATH
-- Searches for a `qmk_firmware` folder in common locations and allows you to specify it
-- Lets you pick a keymap template or start empty
-- Saves a profile to `./profiles` and can generate example `keymap.c`, `config.h`, and `rules.mk` files
-
-Usage:
+## Flash Firmware
 
 ```bash
-# Run the interactive wizard
-corne-cli setup
+corne-cli flash firmware.hex
+corne-cli flash firmware.uf2 --bootloader mass-storage
 ```
 
-Typical flow:
-1. The wizard will list USB devices it can detect; you can choose one to auto-configure or skip.
-2. The wizard shows detected environment info (platform, `qmk` CLI presence, `qmk_firmware` path).
-3. Choose a template (e.g., `qwerty`) or start with an empty profile.
-4. Provide a profile name and optionally save it to `./profiles`.
-5. Optionally generate example keymap files directly into the current directory or into your `qmk_firmware` keymaps folder.
-
-Example: generate files in your current directory and compile
+## Templates
 
 ```bash
-corne-cli setup
-# Follow prompts: choose empty template, name profile "my-first-profile", generate files to ./
-
-# Then (if you generated under a qmk keymap):
-cd ~/qmk_firmware/keyboards/crkbd/keymaps/my-first-profile
-qmk compile -kb crkbd/rev1 -km my-first-profile
-qmk flash -kb crkbd -km my-first-profile
-```
-
-Notes:
-- If `qmk` is not on your PATH the wizard will still create profiles and files; install QMK and add it to PATH to compile and flash.
-- Generated OLED header files are placeholders; run `corne-cli oled animate` to convert GIFs into QMK headers.
-
-## 🧩 Templates: List, Apply, Sync, Install
-
-Corne CLI includes a templates system to quickly scaffold keymaps and OLED setups.
-
-- `corne-cli templates:list` — list available local templates (in `templates/`).
-- `corne-cli templates:apply <name>` — save a template to `./profiles` and optionally generate example files in the current directory or a target path. The command validates templates and asks before overwriting existing files.
-- `corne-cli templates:sync <git-repo>` — download templates from a remote git repository (expects templates under `/templates` in the repo).
-- `corne-cli templates:install <name> [--keyboard <kb>] [--qmk-home <path>]` — install a template directly into `qmk_firmware/keyboards/<keyboard>/keymaps/<name>`.
-
-Usage examples:
-
-```bash
-# List templates
+# List available
 corne-cli templates:list
 
-# Apply a template and generate files in current dir
-corne-cli templates:apply qwerty --target ./
+# Apply and save
+corne-cli templates:apply qwerty --target ./output
 
-# Sync templates from a remote repo
-corne-cli templates:sync https://github.com/me/keyboard-templates.git
-
-# Install template into a QMK keyboard (prompts to auto-detect qmk_firmware and keyboard)
+# Install to QMK
 corne-cli templates:install qwerty --keyboard crkbd
 ```
 
-Tips:
-- If you don't pass `--keyboard` to `templates:install`, the CLI will try to auto-detect keyboards under your `qmk_firmware` installation and prompt you to choose when multiple keyboards are found.
-- The tool validates template JSON with a schema and will list issues if a template is malformed.
-
-
-## 🎬 OLED Animations
-
-Transform your OLED displays with animated GIFs!
-
-### Quick Start: Add Animation to Your Keyboard
-
-#### 1. Prepare Your GIF
-
-**Requirements:**
-- Recommended size: 128x32 pixels (for Corne/Lily58/Sofle)
-- Format: GIF (animated or static)
-- Frame rate: 50-500ms per frame works best
-- Keep it under 10 frames for memory efficiency
-
-**Tools to create/edit GIFs:**
-- GIMP (free)
-- Photoshop
-- Online GIF makers (ezgif.com)
-
-#### 2. Convert GIF to QMK Format
-
-Place your GIF in the `examples/` directory:
+## macOS
 
 ```bash
-cd examples/
-# The conversion happens automatically in the CLI
-# For this guide, we use the example image
+corne-cli system:macos-setup --yes
 ```
-
-Your GIF will be converted to a `.h` file like `my-animation_oled_anim.h`.
-
-#### 3. Create a Keymap
-
-```bash
-cd ~/qmk_firmware
-qmk new-keymap -kb crkbd -km my_animation
-```
-
-This creates: `~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/`
-
-#### 4. Copy Animation Files
-
-Copy these files to your new keymap directory:
-
-```powershell
-# Windows PowerShell
-Copy-Item examples\my-animation_oled_anim.h ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/
-Copy-Item examples\keymap_example.c ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/keymap.c
-Copy-Item examples\config.h ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/
-Copy-Item examples\rules.mk ~/qmk_firmware/keyboards/crkbd/keymaps/my_animation/
-```
-
-#### 5. Edit keymap.c
-
-Open `keymap.c` and update the include at the top:
-
-```c
-#include QMK_KEYBOARD_H
-#include "my-animation_oled_anim.h"  // Change this to match your file name
-```
-
-#### 6. Compile Firmware
-
-Identify your controller type:
-- **Pro Micro / generic RP2040**: `promicro_rp2040`
-- **Elite-C**: Use default compilation
-- **Nice!Nano**: `nice_nano_v2`
-
-```bash
-# For RP2040 (most common for Corne):
-qmk compile -kb crkbd/rev1 -km my_animation -e CONVERT_TO=promicro_rp2040
-
-# For standard AVR controllers:
-qmk compile -kb crkbd -km my_animation
-```
-
-Wait for compilation to complete. You'll see:
-```
-Creating UF2 file: .build/crkbd_rev1_my_animation_promicro_rp2040.uf2 [OK]
- * The firmware size is fine - 20726/28672 (72%, 7946 bytes free)
-```
-
-#### 7. Flash to Keyboard
-
-**For RP2040 (UF2 Bootloader):**
-
-1. **Press the reset button** on your keyboard (usually next to the TRRS jack)
-2. A drive called **RPI-RP2** will appear
-3. **Copy** the `.uf2` file from `.build/` to the RPI-RP2 drive
-4. The keyboard will reboot automatically
-
-**For split keyboards (like Corne):**
-- Repeat steps 1-3 for **both halves** of the keyboard
-- Flash the side with USB connected first
-- Then flash the other side
-
-**For Caterina bootloader:**
-```bash
-qmk flash -kb crkbd -km my_animation
-# Follow prompts to reset keyboard
-```
-
-#### 8. Enjoy Your Animated OLED! 🎉
-
-Your animation should now be playing on the OLED display!
-
----
-
-## ⌨️ Real-Time Key Display
-
-Show the keys you press in real-time on your OLED!
-
-### What You Get
-
-- **Left OLED**: Displays the last key pressed (repeated 14 times for visibility)
-- **Right OLED**: Shows animated GIF
-- **Layer indicator**: Shows current layer (Base, Lower, Raise, Adjust)
-- **Support for 50+ symbols**: All letters, numbers, punctuation, arrows, function keys
-
-### Supported Keys Display
-
-| Key Type | Display |
-|----------|---------|
-| Letters A-Z | A, B, C... |
-| Numbers 0-9 | 0, 1, 2... |
-| Space | ` ` (space) |
-| Enter | `^` |
-| Backspace | `<` |
-| Delete | `X` |
-| Tab | `#` |
-| Escape | `~` |
-| Arrows | `<`, `>`, `^`, `v` |
-| Symbols | `,`, `.`, `/`, `;`, `'`, `-`, `=`, `[`, `]`, `\`, `` ` `` |
-| Shift symbols | `!`, `@`, `#`, `$`, `%`, `^`, `&`, `*`, `(`, `)`, `_`, `+`, `{`, `}`, `|`, `~` |
-| Home/End | `H`, `E` |
-| Page Up/Down | `U`, `D` |
-| Function keys | `F` |
-| Modifiers | `C` (Ctrl), `S` (Shift), `A` (Alt), `W` (Win/GUI) |
-| Layers | `L` (Lower), `R` (Raise), `A` (Adjust) |
-
-### Customization
-
-Edit `keymap.c` to change the display behavior:
-
-```c
-// In the render_key_log() function:
-
-// Change how many times the key repeats:
-for (int i = 0; i < 14; i++) {  // Change 14 to any number
-    oled_write_char(last_key, false);
-}
-
-// Swap which OLED shows what:
-if (is_keyboard_left()) {
-    // This code runs on the LEFT display
-    render_key_log();  // Show keys
-} else {
-    // This code runs on the RIGHT display
-    render_animation();  // Show animation
-}
-```
-
----
-
-## 💾 Backup & Restore
-
-Always backup before making changes!
-
-### Create a Backup
-
-**Windows:**
-```powershell
-# Run the backup script
-.\examples\backup-corne.ps1 -KeymapName default
-
-# Output will be saved to:
-# C:\Users\YourName\corne-backups\backup_default_YYYY-MM-DD_HHMMSS\
-```
-
-**Manual backup:**
-```bash
-# Copy your keymap folder
-cp -r ~/qmk_firmware/keyboards/crkbd/keymaps/my_keymap ~/backups/my_keymap_backup
-```
-
-### Restore from Backup
-
-**Windows:**
-```powershell
-.\examples\restore-corne.ps1 -BackupPath C:\Users\YourName\corne-backups\backup_default_2026-04-01_160612
-```
-
-**Manual restore:**
-```bash
-cp -r ~/backups/my_keymap_backup ~/qmk_firmware/keyboards/crkbd/keymaps/my_keymap
-```
-
-### What Gets Backed Up
-
-- ✅ `keymap.c` - Your key layout
-- ✅ `config.h` - Configuration settings
-- ✅ `rules.mk` - Build settings
-- ✅ Custom header files (`.h`)
-- ✅ Compiled firmware (`.hex`, `.uf2`) if available
-
----
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### "OLED_DRIVER=SSD1306 is not a valid OLED driver"
-
-**Solution:** QMK now requires lowercase. Edit `rules.mk`:
-
-```make
-# Change this:
-OLED_DRIVER = SSD1306
-
-# To this:
-OLED_DRIVER = ssd1306
-```
-
-#### "qmk: command not found"
-
-**Solution:** You're in the wrong terminal.
-
-- **Windows**: Use QMK MSYS terminal, not PowerShell or CMD
-- **macOS/Linux**: Make sure QMK is in your PATH:
-  ```bash
-  export PATH="$HOME/.local/bin:$PATH"
-  ```
-
-#### Firmware Too Large
-
-**Error:**
-```
-region 'progmem' overflowed by XXXX bytes
-```
-
-**Solutions:**
-
-1. **Enable LTO** in `rules.mk`:
-   ```make
-   LTO_ENABLE = yes
-   ```
-
-2. **Disable unused features** in `rules.mk`:
-   ```make
-   MOUSEKEY_ENABLE = no
-   CONSOLE_ENABLE = no
-   COMMAND_ENABLE = no
-   RGB_MATRIX_ENABLE = no  # If you don't use RGB
-   ```
-
-3. **Reduce animation frames**: Use a GIF with fewer frames (5-8 frames is usually enough)
-
-#### Keys Don't Work After Flashing
-
-**Causes:**
-- Used `oled_clear()` in render loop (causes lag)
-- Blocking code in `oled_task_user()`
-- Wrong firmware flashed
-
-**Solution:** Restore from backup or reflash working firmware:
-```bash
-# Flash the last working firmware
-qmk flash -kb crkbd -km default
-```
-
-#### Animation Doesn't Show
-
-**Check:**
-
-1. **OLED is enabled** in `rules.mk`:
-   ```make
-   OLED_ENABLE = yes
-   OLED_DRIVER = ssd1306
-   ```
-
-2. **Config has correct size** in `config.h`:
-   ```c
-   #define OLED_DISPLAY_128X32  // For Corne
-   ```
-
-3. **Animation is included** in `keymap.c`:
-   ```c
-   #include "my-animation_oled_anim.h"
-   ```
-
-4. **oled_task_user() calls the animation**:
-   ```c
-   oled_write_raw_P(custom_animation[current_frame], OLED_SIZE);
-   ```
-
-#### Split Keyboard Shows Same Thing on Both Sides
-
-**Cause:** Not using `is_keyboard_left()` to differentiate sides.
-
-**Solution:** Add conditional logic:
-
-```c
-bool oled_task_user(void) {
-    if (is_keyboard_left()) {
-        // Left side code
-        render_key_log();
-    } else {
-        // Right side code
-        render_animation();
-    }
-    return false;
-}
-```
-
-#### RPI-RP2 Drive Doesn't Appear
-
-**Solutions:**
-
-1. **Try double-tap** on reset button (like double-clicking)
-2. **Hold reset while connecting USB**
-3. **Check USB cable** - some cables are charge-only
-4. **Try different USB port**
-5. **Windows only**: Check Device Manager for "RP2 Boot" device
-
----
-
-## 🎯 Advanced Usage
-
-### Multiple Animations
-
-Create different animations for different contexts:
-
-```c
-// In keymap.c
-static const char PROGMEM idle_anim[FRAMES][512] = { /* ... */ };
-static const char PROGMEM typing_anim[FRAMES][512] = { /* ... */ };
-
-static uint32_t last_keypress_time = 0;
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        last_keypress_time = timer_read32();
-    }
-    return true;
-}
-
-bool oled_task_user(void) {
-    // Show typing animation for 5 seconds after keypress
-    if (timer_elapsed32(last_keypress_time) < 5000) {
-        oled_write_raw_P(typing_anim[current_frame], OLED_SIZE);
-    } else {
-        oled_write_raw_P(idle_anim[current_frame], OLED_SIZE);
-    }
-    return false;
-}
-```
-
-### Layer-Based Animations
-
-Show different animations per layer:
-
-```c
-bool oled_task_user(void) {
-    switch (get_highest_layer(layer_state)) {
-        case _BASE:
-            oled_write_raw_P(base_animation[frame], OLED_SIZE);
-            break;
-        case _LOWER:
-            oled_write_raw_P(lower_animation[frame], OLED_SIZE);
-            break;
-        case _RAISE:
-            oled_write_raw_P(raise_animation[frame], OLED_SIZE);
-            break;
-    }
-    return false;
-}
-```
-
-### Custom Text + Animation
-
-Combine static text with animations:
-
-```c
-bool oled_task_user(void) {
-    if (is_keyboard_left()) {
-        // Left: Text info
-        oled_set_cursor(0, 0);
-        oled_write_P(PSTR("Layer: "), false);
-        oled_write_P(get_layer_name(), false);
-        
-        oled_set_cursor(0, 2);
-        oled_write_P(PSTR("WPM: "), false);
-        oled_write(get_u8_str(get_current_wpm(), ' '), false);
-    } else {
-        // Right: Animation
-        render_animation();
-    }
-    return false;
-}
-```
-
-### Performance Optimization
-
-For smoother animations:
-
-```c
-// Use faster frame rates for small animations
-#define ANIM_FRAME_DURATION 50  // 50ms = 20 FPS
-
-// Skip frames if system is busy
-static uint8_t skip_counter = 0;
-if (++skip_counter >= 2) {  // Update every 2nd call
-    skip_counter = 0;
-    update_animation();
-}
-```
-
----
-
-## 📚 Additional Resources
-
-- [QMK Documentation](https://docs.qmk.fm/)
-- [Corne Keyboard Guide](https://github.com/foostan/crkbd)
-- [OLED Driver Documentation](https://docs.qmk.fm/#/feature_oled_driver)
-- [Animated GIF Support Guide](docs/ANIMATED_GIF_SUPPORT.md)
-- [Setup Guide](examples/SETUP_GUIDE.md)
-- [Backup/Restore Guide](examples/BACKUP_RESTORE.md)
-
----
-
-## 💬 Community & Support
-
-- **GitHub Issues**: Report bugs or request features
-- **Discord**: Join the QMK Discord for real-time help
-- **Reddit**: r/olkb and r/MechanicalKeyboards
-
----
-
-## 🤝 Contributing
-
-Found a bug? Want to add a feature? Contributions are welcome!
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-*Last Updated: April 2, 2026*
