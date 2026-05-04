@@ -670,7 +670,7 @@ async function installKeymapCommand(name: string, options: { keyboard?: string; 
 
     if (!doFlash) {
       const compileCmd = isRp2040
-        ? `qmk compile -kb ${keyboard} -km ${name} -e CONVERT_TO=rp2040_ce`
+        ? `qmk compile -kb ${keyboard} -km ${name} -e CONVERT_TO=promicro_rp2040`
         : `qmk compile -kb ${keyboard} -km ${name}`;
       console.log(chalk.gray('\nTo compile and flash, run:'));
       console.log(chalk.cyan(compileCmd));
@@ -687,7 +687,7 @@ async function installKeymapCommand(name: string, options: { keyboard?: string; 
     console.log(chalk.cyan('\n📦 Compiling firmware...'));
     const compileArgs = ['compile', '-kb', keyboard, '-km', name];
     if (isRp2040) {
-      compileArgs.push('-e', 'CONVERT_TO=rp2040_ce');
+      compileArgs.push('-e', 'CONVERT_TO=promicro_rp2040');
       console.log(chalk.gray('  (RP2040 mode)'));
     }
     await runCommand('qmk', compileArgs);
@@ -698,7 +698,7 @@ async function installKeymapCommand(name: string, options: { keyboard?: string; 
       console.log(chalk.cyan('\n🔄 Auto-detecting UF2 volume...'));
       const uf2File = path.basename(keymapPath).replace('keymap.c', isRp2040 ? '_rp2040.uf2' : '.uf2');
       const uf2Path = path.join(qmkHome, uf2File);
-      const altUf2 = path.join(qmkHome, `crkbd_rev1_${name}${isRp2040 ? '_rp2040_ce' : ''}.uf2`);
+      const altUf2 = path.join(qmkHome, `crkbd_rev1_${name}${isRp2040 ? '_promicro_rp2040' : ''}.uf2`);
 
       let finalUf2 = uf2Path;
       try { await fs.access(uf2Path); }
