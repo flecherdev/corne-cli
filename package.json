@@ -1,6 +1,6 @@
 {
   "name": "corne-cli",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "CLI tool for customizing Corne keyboards with QMK firmware - Convert GIFs to OLED animations with WPM support and configurable rotation",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
